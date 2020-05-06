@@ -19,7 +19,9 @@ def judge_filepath(file_type):
 
 
 def format_size(old_size):
-    if 1024 < old_size < 1024 * 1024:
+    if old_size < 1024:
+        return str(old_size) + 'B'
+    elif 1024 < old_size < 1024 * 1024:
         new_size = round(old_size / 1024, 2)
         return str(new_size) + 'KB'
     elif 1024 * 1024 < old_size < 1024 * 1024 * 1024:

@@ -167,6 +167,7 @@ def download_file(request):
     file_name = file_path.split('/')[-1]
     file_dir = BASE_DIR + '/static/' + file_path
     file = open(file_dir, 'rb')
+    print(file_dir)
     response = FileResponse(file)
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
@@ -182,12 +183,26 @@ def upload_file(request):
         file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
         pwd = request.POST.get('file_path')
 
+
         update_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
         file_size = format_size(file_obj.size)
         file_name = file_obj.name
+        file_suffix = file_name.split('.')[-1]
+        # file_purename_len = len(file_purename) - 1
+        file_version = 0
         save_path = BASE_DIR + '/static/' + user_name + '/' + pwd
         file_path = user_name + '/' + pwd + file_name
         # print(belong_folder, folder_name, save_path)
+        
+        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+        while (file_obj_exist):
+            file_version += 1
+            # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
+            file_name = file_name.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
+            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+
+        file_path = file_path.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
+
         models.FileInfo.objects.create(user_id=user_obj.id, file_path=file_path,
                                        file_name=file_name, update_time=update_time, file_size=file_size,
                                        file_type=file_type, belong_folder=pwd)
@@ -270,7 +285,7 @@ def logout(request):
     return redirect('/')
 
 
-def page_not_found(request):
+def page_not_found(request, exception):
     return render(request, '404.html')
 
 

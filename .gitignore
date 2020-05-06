@@ -1,6 +1,11 @@
-__pycache__
+
 .idea
 .vscode/
 ddd/
 Pipfile
 Pipfile.lock
+
+__pycache__
+
+mkf
+migrations

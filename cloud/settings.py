@@ -25,9 +25,7 @@ SECRET_KEY = 'yjrlhe@aisn_o6joj&ezq&5j4dte2wy=kcqcd-fvg44@x8=ie_'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['yun.cxmgxj.cn']
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = ['*',]
 
 
 # Application definition
@@ -82,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'cloud',  # 数据库名
         'HOST': '127.0.0.1',
-        'PASSWORD': 'password',
+        'PASSWORD': '123456',
         'PORT': 3306,
         'USER': 'root',
     }
@@ -122,7 +120,6 @@ USE_L10N = True
 USE_TZ = False
 
 LOGIN_URL = '/login'
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

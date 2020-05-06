@@ -35,5 +35,5 @@ urlpatterns = [
     path('rename_folder/', views.rename_folder),
 
 ]
-# handler404 = views.page_not_found
-# handler500 = views.page_error
+handler404 = views.page_not_found
+handler500 = views.page_error

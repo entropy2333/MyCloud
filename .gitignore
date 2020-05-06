@@ -1,6 +1,9 @@
 
 .idea
-.vscode
+.vscode/
+ddd/
+Pipfile
+Pipfile.lock
 
 __pycache__
 

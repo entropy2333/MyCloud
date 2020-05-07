@@ -124,22 +124,25 @@ def download_share_file(request):
 
 @login_required
 def rename_file(request):
-    user = str(request.user)
-    user_id = User.objects.get(username=user).id
-    old_file_name = request.GET.get('old_file_name')
-    file_type = old_file_name.split('.')[-1]
-    new_file_name = request.GET.get('new_file_name')+'.'+file_type
-    pwd = request.GET.get('pwd')
-    file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
-    old_path = file_obj.file_path
-    new_path = old_path.replace(old_file_name, new_file_name)
-    file_obj.file_path = new_path
-    old_full_path = BASE_DIR + '/static/' + old_path
-    new_full_path = BASE_DIR + '/static/' + new_path
-    os.rename(old_full_path, new_full_path)
-    file_obj.file_name = new_file_name
-    file_obj.save()
-    return redirect('/folder/?pdir=' + pwd)
+    if request.method == 'GET':
+        return redirect('/folder/?pdir=' + pwd)
+    elif request.method == 'POST':
+        user = str(request.user)
+        user_id = User.objects.get(username=user).id
+        old_file_name = request.POST.get('old_file_name')
+        file_type = old_file_name.split('.')[-1]
+        new_file_name = request.POST.get('new_file_name')+'.'+file_type
+        pwd = request.POST.get('pwd', '')
+        file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+        old_path = file_obj.file_path
+        new_path = old_path.replace(old_file_name, new_file_name)
+        file_obj.file_path = new_path
+        old_full_path = BASE_DIR + '/static/' + old_path
+        new_full_path = BASE_DIR + '/static/' + new_path
+        os.rename(old_full_path, new_full_path)
+        file_obj.file_name = new_file_name
+        file_obj.save()
+        return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 
 

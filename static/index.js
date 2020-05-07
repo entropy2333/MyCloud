@@ -201,6 +201,21 @@ $(document).ready(function () {
             });
         });
 
+        //重命名文件
+        $('#RenameFileModal').on('shown.bs.modal', function (event) {
+            var oldname = $(event.relatedTarget).data("oldname");
+            var file_name = oldname.split('.')[0];
+            var file_type = oldname.split('.')[1];
+            $('#old_file_name').attr('value', oldname);
+            $('#new_file_name').attr('placeholder', file_name);
+            $('#rename-file-addon2').text('.' + file_type);
+            $('#rename_file_type').text('.' + file_type);
+            var dir = $('#pwd').text();
+            $('#rename_file_pwd').val(dir);
+            // var tmp = $(event.relatedTarget).data("oldname");
+            // alert(tmp);
+        });
+
         //关闭模态框事件
 
         // //为文件添加图标开始

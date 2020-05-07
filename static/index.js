@@ -57,17 +57,18 @@ $(document).ready(function () {
                     $('#myTable tbody').html(all_tr);
                 }
             })
-        })
+        });
         //分类ajax结束
 
         //搜索ajax开始
         $(".search_link").click(function (event) {
             var file_name = $(" .search-input").val();
-            if (!event.target.name) {
-                var type = event.target.parentElement.name;
+            let arr = ["all", "doc", "img", "video", "procedure", "others"]
+            if (arr.indexOf(event.target.title) > -1) {
+                var type = event.target.title;
             }
             else {
-                var type = event.target.name;
+                var type = event.target.parentElement.title;
             }
             // var $selector = $(this).attr("data-target");
             // var val = $(this).text();
@@ -91,7 +92,7 @@ $(document).ready(function () {
                     $('#myTable tbody').html(all_tr);
                 }
             })
-        })
+        });
         //搜索文件ajax结束
 
         //导航栏动态效果切换

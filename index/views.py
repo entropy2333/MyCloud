@@ -94,14 +94,33 @@ def share_file(request):
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
         share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path,
-                                    file_name=file_name, start_time=update_time, end_time=end_time, file_size=file_size
+                                    file_name=file_name, start_time=update_time, end_time=end_time, file_size=file_size,
                                     share_url=share_url)
-        share_list = {}
+        share_dict = {}
         share_url, qr_str = gen_qrcode(file_path)
-        share_list['share_url'] = share_url
-        share_list['qr_str'] = qr_str
+        share_dict['share_url'] = share_url
+        share_dict['qr_str'] = qr_str
         return render(request, 'index.html',
                   {'share_dict': share_dict, 'username': str(user)})
+
+def download_share_file(request):
+    if request.method == 'GET':
+        return render(request, 'share.html')
+    elif request.method == 'POST':
+        file_sharecode = request.POST.get('file_sharecode')
+        file_path = request.GET.get('file_path')
+        file_obj = models.ShareInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
+        if file_obj:
+            file_name = file_path.split('/')[-1]
+            with open(f'{BASE_DIR}/static/{file_path}', 'rb') as f:
+                response = FileResponse(file)
+            response['status'] = 'success'
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+        else:
+            response['status'] = 'failed'
+        return response
+
 
 @login_required
 def rename_file(request):

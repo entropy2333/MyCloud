@@ -65,16 +65,20 @@ def folder(request):
 
 @login_required
 def delete_file(request):
-    user = str(request.user)
-    user_id = User.objects.get(username=user).id
-    file_path = request.GET.get('file_path')
-    pwd = request.GET.get('pwd')
-    models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
-    try:
-        os.remove(BASE_DIR + '/static/' + file_path)
-    except Exception as e:
-        print(e)
-    return redirect('/folder/?pdir=' + pwd)
+    if request.method == 'GET':
+        return redirect('/folder/?pdir=' + pwd)
+    elif request.method == 'POST':
+        user_name = str(request.user)
+        user_obj = User.objects.get(username=user_name)
+        file_path = request.POST.get('file_path')
+        user_id = user_obj.id
+        pwd = request.POST.get('pwd')
+        models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
+        try:
+            os.remove(BASE_DIR + '/static/' + file_path)
+        except Exception as e:
+            print(e)
+        return redirect('/folder/?pdir=' + pwd)
 
 
 @login_required
@@ -176,7 +180,9 @@ def download_file(request):
 
 @login_required
 def upload_file(request):
-    if request.method == "POST":
+    if request.method == "GET":
+        return redirect('/')
+    elif request.method == "POST":
         user_name = str(request.user)
         user_obj = User.objects.get(username=user_name)
         file_obj = request.FILES.get('file')
@@ -200,7 +206,7 @@ def upload_file(request):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
             file_name = file_name.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
-            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
 
         file_path = file_path.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
 
@@ -224,7 +230,7 @@ def file_type(request):
     else:
         file_obj = models.FileInfo.objects.filter(file_type=file_type, user_id=user_id)
     for file in file_obj:
-        file_list.append({'file_path': file.file_path, 'file_name': file.file_name,
+        file_list.append({'id': file.id, 'file_path': file.file_path, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
@@ -242,30 +248,30 @@ def search(request):
     else:
         file_obj = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_id)
     for file in file_obj:
-        file_list.append({'file_path': file.file_path, 'file_name': file.file_name,
+        file_list.append({'file_path': file.file_path, 'user_id': user_id, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
 
-def share_file(request):
+def download_share_file(request):
     if request.method == 'GET':
         return render(request, 'share.html')
     elif request.method == 'POST':
         file_sharecode = request.POST.get('file_sharecode')
         file_path = request.GET.get('file_path')
-        file_obj = models.FileInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
+        file_obj = models.ShareInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
         if file_obj:
             file_name = file_path.split('/')[-1]
             file_dir = BASE_DIR + '/static/' + file_path
             file = open(file_dir, 'rb')
             print(file_dir)
             response = FileResponse(file)
+            response['status'] = 'success'
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
         else:
-            response['error'] = 'invalid sharecode'
+            response['status'] = 'failed'
         return response
-
 
 def login(request):
     if request.method == 'GET':

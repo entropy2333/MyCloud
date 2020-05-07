@@ -135,6 +135,7 @@ $(document).ready(function () {
             $.ajax({
                 url: "/upload_file/",
                 type: "POST",
+                async: false,
                 dataType: "json",
                 data: formData,
                 headers: {"X-CSRFToken": $.cookie('csrftoken')},
@@ -153,6 +154,7 @@ $(document).ready(function () {
                 contentType: false, //必须false才会自动加上正确的Content-Type
                 processData: false  //必须false才会避开jQuery对 formdata 的默认处理
             });
+            window.location.reload()
         })
         
         //上传进度回调函数：
@@ -190,6 +192,7 @@ $(document).ready(function () {
             $.ajax({
                 url: "/delete_file/",
                 type: "POST",
+                async: false,
                 dataType: "json",
                 data: formData,
                 headers: {"X-CSRFToken": $.cookie('csrftoken')},
@@ -199,6 +202,7 @@ $(document).ready(function () {
                 contentType: false, //必须false才会自动加上正确的Content-Type
                 processData: false  //必须false才会避开jQuery对 formdata 的默认处理
             });
+            window.location.reload();
         });
 
         //重命名文件

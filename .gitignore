@@ -1,16 +1,15 @@
 
 .idea
 
-.vscode
-ddd/
-
 .vscode/
 ddd/
+mkf/
+
 Pipfile
 Pipfile.lock
 
 __pycache__
 
-mkf
+
 migrations
 

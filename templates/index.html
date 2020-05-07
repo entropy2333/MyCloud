@@ -71,6 +71,10 @@
                                     aria-haspopup="true" aria-expanded="false" style="width: 100px">分类<span
                                     class="caret"></span>
                             </button>
+                            <button type="button" class="btn btn-default" style="width: 40px" name="search">
+                                <a href="javascript:void(0)" class="search_link" name="all">
+                                    <i class="fa fa-search fa-lg" aria-hidden="true"></i></a>
+                            </button>
                             <ul class="dropdown-menu dropdown-menu-right">
                                 <li><a href="javascript:void(0)" class="search_link" name="all">
                                     <i class="fa fa-file-o fa-lg"></i> 所有</a></li>
@@ -89,8 +93,14 @@
                                 <li role="separator" class="divider"></li>
                                 <li><a href="javascript:void(0)" class="search_link" name="others">其他</a></li>
                             </ul>
+                            <!-- <a href="javascript:void(0)" class="search_link" name="procedure">
+                                <i class="fa fa-android fa-lg" aria-hidden="true"></i> 查找</a>
+                                 -->
                         </div>
-                    </div>
+                        <div class="input-group-append">
+                            <!-- <span class="glyphicon glyphicon-search search_link" type="submit" aria-hidden="true"></span>   -->
+                        </div>
+                    </div>   
 
                 </div>
                 <div class="col-sm-4">
@@ -203,7 +213,7 @@
                                     <i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载
                                 </a> 
                                 <!--分享文件模态框开始-->
-                                <button class="btn btn-success" data-toggle="modal" 
+                                <button class="btn btn-info" data-toggle="modal" 
                                         data-target="#ShareModal{{ file.id }}">
                                     <i class="fa fa-share-alt" aria-hidden="true"></i> 分享                                 
                                 </button>
@@ -236,7 +246,7 @@
                                                         <script>
                                                             var dir = $('#pwd').text();
                                                             $('#sharefile_{{ file.id }}').val(dir);
-                                                            {% comment %} alert('#sharefile_{{ file.id }}') {% endcomment %}
+                                                            // alert('#sharefile_{{ file.id }}');
                                                         </script>
                                                         <input type="text" class="form-control" id="sharefile_{{ file.id }}"
                                                                placeholder="请输入分享码" name="new_file_name">
@@ -258,12 +268,12 @@
                                                 </button>
                                                 <button id="share" class="btn btn-info">分享</button>
                                             </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                                 <!--下载文件模态框结束-->
-                                <button class="btn btn-warning rename_file" data-toggle="modal"
-                                        data-target="#FileModal{{ file.id }}">
+                                <button class="btn btn-warning rename_file" data-toggle="modal" data-target="#FileModal{{ file.id }}">
                                     <i class="fa fa-gear fa-lg" aria-hidden="true"></i> 重命名
                                 </button>
                                 <!--重命名文件模态框开始-->
@@ -319,8 +329,9 @@
                                 data-target="#DeleteFileModal{{ file.id }}">
                                     <i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除
                                 </button> -->
-                                <button class="btn btn-danger delete_file" id="deleteFile" value="{{ file.file_path }}" name="{{ file.id }}">
-                                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除
+                                <button class="btn btn-danger">
+                                    <span class="deleteFile" title="{{ file.file_path }}">
+                                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span>
                                 </button>
 
                                 <!--删除文件模态框开始-->

@@ -47,8 +47,10 @@ $(document).ready(function () {
                         var tr = '<tr></tr><td style="text-align: left"><a href="/static/' + data[i].file_path + '"><i class="fa fa-file fa-lg"></i> ' + data[i].file_name + '</a></td>\n' +
                             '<td>' + data[i].file_size + '</td>\n' +
                             '<td>' + data[i].update_time + '</td>\n' +
-                            '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a> ' +
+                            '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>' +
                             // '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a> \n' +
+                            '<button class="btn btn-warning rename_file" data-toggle="modal" data-target="#FileModal' + data[i].id + '"><i class="fa fa-gear fa-lg" aria-hidden="true"></i> 重命名</button>\n' +
+                            '<button class="btn btn-danger"><span href="javascript:void(0)" class="deleteFile" title="' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span></button>\n' +
                             '</td></tr>'
                         all_tr = all_tr + tr;
                     }
@@ -61,9 +63,14 @@ $(document).ready(function () {
         //搜索ajax开始
         $(".search_link").click(function (event) {
             var file_name = $(" .search-input").val();
-            var type = event.target.name;
-            //var $selector = $(this).attr("data-target");
-            var val = $(this).text();
+            if (!event.target.name) {
+                var type = event.target.parentElement.name;
+            }
+            else {
+                var type = event.target.name;
+            }
+            // var $selector = $(this).attr("data-target");
+            // var val = $(this).text();
             $.ajax({
                 type: "get",
                 dataType: "json",
@@ -77,7 +84,7 @@ $(document).ready(function () {
                             '<td>' + data[i].update_time + '</td>\n' +
                             '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>\n' +
                             '&nbsp;&nbsp;&nbsp;\n' +
-                            // '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a>\n' +
+                            '<button class="btn btn-danger"><span href="javascript:void(0)" class="deleteFile" title="{{ file.file_path }}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span></button>\n' +
                             '</td></tr>'
                         all_tr = all_tr + tr;
                     }
@@ -166,10 +173,15 @@ $(document).ready(function () {
         })        
 
         //删除文件
-        $('#deleteFile').click(function (event) {
+        $('.deleteFile').click(function (event) {
             
-            var file_id = event.target.name;
-            var file_path = event.target.value;
+            // var file_id = event.target.name;
+            if (event.target.className == "fa fa-trash fa-lg") {
+                var file_path =event.target.parentElement.title;
+            }
+            else {
+                var file_path = event.target.title;
+            }
             var pwd = $('#pwd').text();
             var formData = new FormData();
             formData.append("pwd", pwd);
@@ -187,6 +199,7 @@ $(document).ready(function () {
                 processData: false  //必须false才会避开jQuery对 formdata 的默认处理
             });
         });
+
         //关闭模态框事件
 
         // //为文件添加图标开始

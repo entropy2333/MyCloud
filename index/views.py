@@ -229,7 +229,7 @@ def file_type(request):
     else:
         file_obj = models.FileInfo.objects.filter(file_type=file_type, user_id=user_id)
     for file in file_obj:
-        file_list.append({'file_path': file.file_path, 'file_name': file.file_name,
+        file_list.append({'id': file.id, 'file_path': file.file_path, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
@@ -247,7 +247,7 @@ def search(request):
     else:
         file_obj = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_id)
     for file in file_obj:
-        file_list.append({'file_path': file.file_path, 'file_name': file.file_name,
+        file_list.append({'file_path': file.file_path, 'user_id': user_id, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)

@@ -36,3 +36,12 @@ class FolderInfo(models.Model):
     update_time = models.DateTimeField(verbose_name='创建时间')
     belong_folder = models.CharField(max_length=64, verbose_name='所属文件夹')
     folder_name = models.CharField(max_length=64, verbose_name='文件夹名')
+
+class ShareInfo(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file_path = models.CharField(max_length=128, verbose_name='存储路径')
+    file_name = models.CharField(max_length=128, verbose_name='文件名')
+    start_time = models.DateTimeField(verbose_name='起始时间')
+    end_time = models.DateTimeField(verbose_name='终止时间')
+    file_size = models.CharField(max_length=16, verbose_name='文件大小')
+    share_url = models.CharField(max_length=128, verbose_name='分享链接')

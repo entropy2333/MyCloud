@@ -7,9 +7,9 @@ mkf/
 
 Pipfile
 Pipfile.lock
+tempCodeRunnerFile.py
 
 __pycache__
-
 
 migrations
 

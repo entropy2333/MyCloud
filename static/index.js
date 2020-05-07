@@ -49,7 +49,7 @@ $(document).ready(function () {
                             '<td>' + data[i].update_time + '</td>\n' +
                             '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>' +
                             // '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a> \n' +
-                            '<button class="btn btn-warning rename_file" data-toggle="modal" data-target="#FileModal' + data[i].id + '"><i class="fa fa-gear fa-lg" aria-hidden="true"></i> 重命名</button>\n' +
+                            // '<button class="btn btn-warning rename_file" data-toggle="modal" data-target="#FileModal' + data[i].file_id + '"><i class="fa fa-gear fa-lg" aria-hidden="true"></i> 重命名</button>\n' +
                             '<button class="btn btn-danger"><span href="javascript:void(0)" class="deleteFile" title="' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span></button>\n' +
                             '</td></tr>'
                         all_tr = all_tr + tr;
@@ -147,7 +147,7 @@ $(document).ready(function () {
                     return myXhr; //xhr对象返回给jQuery使用
                 },
                 success: function (result) {
-
+                    $('#myTable tbody').html();
                 },
                 contentType: false, //必须false才会自动加上正确的Content-Type
                 processData: false  //必须false才会避开jQuery对 formdata 的默认处理

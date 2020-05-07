@@ -201,7 +201,67 @@
                             <td>
                                 <a class="btn btn-success" href="/download_file/?file_path={{ file.file_path }}">
                                     <i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载
-                                </a>
+                                </a> 
+                                <!--分享文件模态框开始-->
+                                <button class="btn btn-success" data-toggle="modal" 
+                                        data-target="#ShareModal{{ file.id }}">
+                                    <i class="fa fa-share-alt" aria-hidden="true"></i> 分享                                 
+                                </button>
+                                <!-- Modal -->
+                                <div class="modal fade" id="ShareModal{{ file.id }}" tabindex="-1" role="dialog" 
+                                     aria-labelledby="myModalLabel">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" 
+                                                        aria-label="Close"><span
+                                                        aria-hidden="true">&times;</span></button>
+                                                <h4 class="modal-title" id="myModalLabel">分享文件</h4>
+                                            </div>
+                                            <form action="/share_file/" method="get">
+                                                <div class="modal-body">
+                                                    <div class="input-group">
+                                                        <span class="input-group-addon" id="basic-addon2">分享链接:</span>
+                                                        <input id="sharefile_{{ file.id }}" type="text" name="pwd" hidden>
+                                                        <script>
+                                                            var dir = $('#pwd').text();
+                                                            $('#sharefile_{{ file.id }}').val(dir);
+                                                        </script>
+                                                        <input type="text" class="form-control" id="sharefile_{{ file.id }}"
+                                                               value="{{ file.file_name }}分享测试" readonly="readonly" name="share_url">
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <span class="input-group-addon" id="basic-addon3">分享密码:</span>
+                                                        <input id="sharefile_{{ file.id }}" type="text" name="pwd" hidden>
+                                                        <script>
+                                                            var dir = $('#pwd').text();
+                                                            $('#sharefile_{{ file.id }}').val(dir);
+                                                            {% comment %} alert('#sharefile_{{ file.id }}') {% endcomment %}
+                                                        </script>
+                                                        <input type="text" class="form-control" id="sharefile_{{ file.id }}"
+                                                               placeholder="请输入分享码" name="new_file_name">
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <span class="input-group-addon" id="basic-addon2"> 二 维 码 :</span>
+                                                        <input id="sharefile_{{ file.id }}" type="text" name="pwd" hidden>
+                                                        <script>
+                                                            var dir = $('#pwd').text();
+                                                            $('#sharefile_{{ file.id }}').val(dir);
+                                                        </script>
+                                                        <input type="image" class="form-group" id="sharefile_{{ file.id }}"
+                                                            src="http://m.qpic.cn/psc?/V12si9mX0jcGdh/KMnzwBNJT4ZeiPmlYdobb9ANHng.lIp1W4fVwjrIb0kCFmVR7oK.YjZZAjKIV6Qjb6.9lLQfg5sOx8CjJ0tsuA!!/b&amp;bo=BAEEAQAAAAADByI!&amp;rf=viewer_4"
+                                                                align="left" height="20%" width="20%" readonly="readonly" name="file_share_qr">
+                                                    </div>
+                                                </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">关闭
+                                                </button>
+                                                <button id="share" class="btn btn-info">分享</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--下载文件模态框结束-->
                                 <button class="btn btn-warning rename_file" data-toggle="modal"
                                         data-target="#FileModal{{ file.id }}">
                                     <i class="fa fa-gear fa-lg" aria-hidden="true"></i> 重命名

@@ -1,5 +1,9 @@
 
 .idea
+
+.vscode
+ddd/
+
 .vscode/
 ddd/
 Pipfile
@@ -9,3 +13,4 @@ __pycache__
 
 mkf
 migrations
+

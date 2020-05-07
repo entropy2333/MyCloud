@@ -167,7 +167,7 @@ def download_file(request):
     file_name = file_path.split('/')[-1]
     file_dir = BASE_DIR + '/static/' + file_path
     file = open(file_dir, 'rb')
-    print(file_dir)
+    # print(file_dir)
     response = FileResponse(file)
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
@@ -195,6 +195,7 @@ def upload_file(request):
         # print(belong_folder, folder_name, save_path)
         
         file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+        # print(file_obj_exist)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
@@ -246,11 +247,31 @@ def search(request):
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
 
+def share_file(request):
+    if request.method == 'GET':
+        return render(request, 'share.html')
+    elif request.method == 'POST':
+        file_sharecode = request.POST.get('file_sharecode')
+        file_path = request.GET.get('file_path')
+        file_obj = models.FileInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
+        if file_obj:
+            file_name = file_path.split('/')[-1]
+            file_dir = BASE_DIR + '/static/' + file_path
+            file = open(file_dir, 'rb')
+            print(file_dir)
+            response = FileResponse(file)
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+        else:
+            response['error'] = 'invalid sharecode'
+        return response
+
 
 def login(request):
     if request.method == 'GET':
         return render(request, 'login.html')
     elif request.method == "POST":
+
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = auth.authenticate(username=username, password=password)

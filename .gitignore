@@ -1,4 +1,16 @@
-__pycache__
+
 .idea
+
 .vscode
 ddd/
+
+.vscode/
+ddd/
+Pipfile
+Pipfile.lock
+
+__pycache__
+
+mkf
+migrations
+

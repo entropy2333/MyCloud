@@ -65,16 +65,18 @@ def folder(request):
 
 @login_required
 def delete_file(request):
-    user = str(request.user)
-    user_id = User.objects.get(username=user).id
-    file_path = request.GET.get('file_path')
-    pwd = request.GET.get('pwd')
-    models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
-    try:
-        os.remove(BASE_DIR + '/static/' + file_path)
-    except Exception as e:
-        print(e)
-    return redirect('/folder/?pdir=' + pwd)
+    if request.method == 'POST':
+        user_name = str(request.user)
+        user_obj = User.objects.get(username=user_name)
+        file_path = request.POST.get('file_path')
+        user_id = user_obj.id
+        pwd = request.POST.get('pwd')
+        models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
+        try:
+            os.remove(BASE_DIR + '/static/' + file_path)
+        except Exception as e:
+            print(e)
+        return redirect('/folder/?pdir=' + pwd)
 
 
 @login_required

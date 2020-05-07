@@ -314,12 +314,28 @@
                                 </div>
 
                                 <!--重命名文件模态框结束-->
-                                <a class="btn btn-danger" id="deletefile_{{ file.id }}">
+                                <a class="btn btn-danger" id="delete_file_{{ file.id }}">
                                     <i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a>
                                 <script>
+                                    $("#delete_file_{{ file.id }}").click(function () {
                                     var pwd = $('#pwd').text();
-                                    var folder_name = '{{ file.folder_name }}';
-                                    $('#deletefile_{{ file.id }}').attr('href', '/delete_file/?pwd=' + pwd + '&file_path=' + '{{ file.file_path }}');
+                                    var file_path = '{{ file.file_path }}';
+                                    var formData = new FormData();
+                                    formData.append("pwd", pwd);
+                                    formData.append("file_path", file_path);
+                                    $.ajax({
+                                        url: "/delete_file/",
+                                        type: "POST",
+                                        dataType: "json",
+                                        data: formData,
+                                        headers: {"X-CSRFToken": $.cookie('csrftoken')},
+                                        success: function (result) {
+                                            
+                                        },
+                                        contentType: false, //必须false才会自动加上正确的Content-Type
+                                        processData: false  //必须false才会避开jQuery对 formdata 的默认处理
+                                    });
+                                });
                                 </script>
                             </td>
                         {% else %}

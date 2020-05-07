@@ -254,29 +254,39 @@
                                 </div>
 
                                 <!--重命名文件模态框结束-->
-                                <a class="btn btn-danger" id="delete_file_{{ file.id }}">
-                                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a>
-                                <script>
-                                    $("#delete_file_{{ file.id }}").click(function () {
-                                    var pwd = $('#pwd').text();
-                                    var file_path = '{{ file.file_path }}';
-                                    var formData = new FormData();
-                                    formData.append("pwd", pwd);
-                                    formData.append("file_path", file_path);
-                                    $.ajax({
-                                        url: "/delete_file/",
-                                        type: "POST",
-                                        dataType: "json",
-                                        data: formData,
-                                        headers: {"X-CSRFToken": $.cookie('csrftoken')},
-                                        success: function (result) {
-                                            
-                                        },
-                                        contentType: false, //必须false才会自动加上正确的Content-Type
-                                        processData: false  //必须false才会避开jQuery对 formdata 的默认处理
-                                    });
-                                });
-                                </script>
+                                
+                                <!-- <button class="btn btn-danger delete_file" data-toggle="modal"
+                                data-target="#DeleteFileModal{{ file.id }}">
+                                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除
+                                </button> -->
+                                <button class="btn btn-danger delete_file" id="deleteFile" value="{{ file.file_path }}" name="{{ file.id }}">
+                                    <i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除
+                                </button>
+
+                                <!--删除文件模态框开始-->
+                                <!-- <div class="modal fade" id="DeleteFileModal{{ file.id }}" tabindex="-1" role="dialog"
+                                aria-labelledby="myModalLabel">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close"><span
+                                                        aria-hidden="true">&times;</span></button>
+                                                <h4 class="modal-title" id="myModalLabel">确定要删除文件吗</h4>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-danger pull-left"
+                                                        data-dismiss="modal">关闭
+                                                </button>
+                                                <button type="button" class="btn btn-info" id="delete_file_{{ file.id }}"
+                                                        data-dismiss="modal">确认
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div> -->
+                                <!--删除文件模态框结束-->
+                                
                             </td>
                         {% else %}
                             <td>

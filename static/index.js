@@ -48,7 +48,7 @@ $(document).ready(function () {
                             '<td>' + data[i].file_size + '</td>\n' +
                             '<td>' + data[i].update_time + '</td>\n' +
                             '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a> ' +
-                            '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a> \n' +
+                            // '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a> \n' +
                             '</td></tr>'
                         all_tr = all_tr + tr;
                     }
@@ -77,7 +77,7 @@ $(document).ready(function () {
                             '<td>' + data[i].update_time + '</td>\n' +
                             '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>\n' +
                             '&nbsp;&nbsp;&nbsp;\n' +
-                            '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a>\n' +
+                            // '<a class="btn btn-danger"  href="/delete_file/?pwd=' + pwd + '&file_path=' + data[i].file_path + '"><i class="fa fa-trash fa-lg" aria-hidden="true"></i> 删除</a>\n' +
                             '</td></tr>'
                         all_tr = all_tr + tr;
                     }
@@ -146,7 +146,7 @@ $(document).ready(function () {
                 processData: false  //必须false才会避开jQuery对 formdata 的默认处理
             });
         })
-
+        
         //上传进度回调函数：
         function progressHandlingFunction(e) {
             if (e.lengthComputable) {
@@ -163,7 +163,30 @@ $(document).ready(function () {
         $('#myModal').on('hidden.bs.modal', function (e) {
             $('.progress').hide();
             window.location.reload();
-        })
+        })        
+
+        //删除文件
+        $('#deleteFile').click(function (event) {
+            
+            var file_id = event.target.name;
+            var file_path = event.target.value;
+            var pwd = $('#pwd').text();
+            var formData = new FormData();
+            formData.append("pwd", pwd);
+            formData.append("file_path", file_path);
+            $.ajax({
+                url: "/delete_file/",
+                type: "POST",
+                dataType: "json",
+                data: formData,
+                headers: {"X-CSRFToken": $.cookie('csrftoken')},
+                success: function (result) {
+                    
+                },
+                contentType: false, //必须false才会自动加上正确的Content-Type
+                processData: false  //必须false才会避开jQuery对 formdata 的默认处理
+            });
+        });
         //关闭模态框事件
 
         // //为文件添加图标开始

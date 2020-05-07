@@ -65,7 +65,9 @@ def folder(request):
 
 @login_required
 def delete_file(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return redirect('/folder/?pdir=' + pwd)
+    elif request.method == 'POST':
         user_name = str(request.user)
         user_obj = User.objects.get(username=user_name)
         file_path = request.POST.get('file_path')
@@ -178,7 +180,9 @@ def download_file(request):
 
 @login_required
 def upload_file(request):
-    if request.method == "POST":
+    if request.method == "GET":
+        return redirect('/')
+    elif request.method == "POST":
         user_name = str(request.user)
         user_obj = User.objects.get(username=user_name)
         file_obj = request.FILES.get('file')
@@ -196,12 +200,12 @@ def upload_file(request):
         file_path = user_name + '/' + pwd + file_name
         # print(belong_folder, folder_name, save_path)
         
-        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
             file_name = file_name.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
-            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
 
         file_path = file_path.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
 

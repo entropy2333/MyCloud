@@ -35,9 +35,7 @@ def format_size(old_size):
         new_size = round(old_size / (1024 * 1024 * 1024), 2)
         return str(new_size) + 'GB'
 
-def gen_qrcode(file_path, qr_dir):
-    if not os.path.isdir(qr_dir):
-        os.pmk
+def gen_qrcode(file_path, qr_dir='./'):
     share_url = base64.b64encode(file_path.encode())
     qr = qrcode.QRCode(
         version=2,
@@ -54,4 +52,5 @@ def gen_qrcode(file_path, qr_dir):
     img.save(save_path)
     with open(save_path,"rb") as f:
         img_str = base64.b64encode(f.read())
+    os.remove(save_path)
     return share_url.decode(), img_str.decode()

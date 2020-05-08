@@ -100,7 +100,7 @@ def share_file(request):
         file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=file_name, user_id=user_id)
         file_path = file_obj.file_path
         file_size = file_obj.file_size
-        share_url, qr_str = gen_qrcode(file_path, qr_dir=f'{BASE_DIR}/static/qrcode/')
+        share_url, qr_str = gen_qrcode(file_path, qr_dir=f'{BASE_DIR}/static/{user_name}/')
 
         share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
                                     file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,

@@ -81,6 +81,7 @@ def delete_file(request):
             print(e)
         return redirect('/folder/?pdir=' + pwd)
 
+
 @login_required
 def share_file(request):
     if request.method == 'GET':
@@ -106,8 +107,9 @@ def share_file(request):
             share_obj.update(start_time=start_time, end_time=end_time, file_sharecode=file_sharecode)
         else:
             share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
+
                                     file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
-                                    share_url=share_url)
+                                    belong_folder=pwd, share_url=share_url)
         
         return JsonResponse({'file_sharecode': file_sharecode,
                             'share_url': share_url,
@@ -116,7 +118,8 @@ def share_file(request):
 # 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
 def download_share_file(request):
     if request.method == 'GET':
-        return render(request, 'share.html')
+        return render(request, 'share.html',
+                {'info': ''})
     elif request.method == 'POST':
         user_name = base64.b64decode(request.GET.get('user_name', '').replace('-','/').replace('_', '+').encode()).decode()
         file_name = base64.b64decode(request.GET.get('file_name', '').replace('-','/').replace('_', '+').encode()).decode()

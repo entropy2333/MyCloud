@@ -33,8 +33,8 @@ urlpatterns = [
     path('delete_folder/', views.delete_folder),
     path('rename_file/', views.rename_file),
     path('rename_folder/', views.rename_folder),
-    # path('share_file/', views.share_file),
-
+    path('share_file/', views.share_file),
+    path('download_share_file/user_name=<path:user_name>/file_name=<path:file_name>', views.download_share_file),
 
 ]
 handler404 = views.page_not_found

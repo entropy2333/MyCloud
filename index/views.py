@@ -80,6 +80,28 @@ def delete_file(request):
             print(e)
         return redirect('/folder/?pdir=' + pwd)
 
+@login_required
+def share_file(request):
+    if request.method == 'GET':
+        return redirect('/')
+    elif request.method == 'POST':
+        user_name = str(request.user)
+        user_obj = User.objects.get(username=user_name)
+        user_id = user_obj.id
+        file_path = request.POST.get('file_path')
+        file_name = file_path.split('/')[-1]
+        file_obj = models.FileInfo.objects.get(file_path=file_path, user_id=user_id)
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path,
+                                    file_name=file_name, start_time=update_time, end_time=end_time, file_size=file_size,
+                                    share_url=share_url)
+        share_dict = {}
+        share_url, qr_str = gen_qrcode(file_path)
+        share_dict['share_url'] = share_url
+        share_dict['qr_str'] = qr_str
+        return render(request, 'index.html',
+                  {'share_dict': share_dict, 'username': str(user)})
 
 @login_required
 def rename_file(request):

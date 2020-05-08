@@ -80,47 +80,6 @@ def delete_file(request):
             print(e)
         return redirect('/folder/?pdir=' + pwd)
 
-@login_required
-def share_file(request):
-    if request.method == 'GET':
-        return redirect('/')
-    elif request.method == 'POST':
-        user_name = str(request.user)
-        user_obj = User.objects.get(username=user_name)
-        user_id = user_obj.id
-        file_path = request.POST.get('file_path')
-        file_name = file_path.split('/')[-1]
-        file_obj = models.FileInfo.objects.get(file_path=file_path, user_id=user_id)
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path,
-                                    file_name=file_name, start_time=update_time, end_time=end_time, file_size=file_size,
-                                    share_url=share_url)
-        share_dict = {}
-        share_url, qr_str = gen_qrcode(file_path)
-        share_dict['share_url'] = share_url
-        share_dict['qr_str'] = qr_str
-        return render(request, 'index.html',
-                  {'share_dict': share_dict, 'username': str(user)})
-
-def download_share_file(request):
-    if request.method == 'GET':
-        return render(request, 'share.html')
-    elif request.method == 'POST':
-        file_sharecode = request.POST.get('file_sharecode')
-        file_path = request.GET.get('file_path')
-        file_obj = models.ShareInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
-        if file_obj:
-            file_name = file_path.split('/')[-1]
-            with open(f'{BASE_DIR}/static/{file_path}', 'rb') as f:
-                response = FileResponse(file)
-            response['status'] = 'success'
-            response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
-        else:
-            response['status'] = 'failed'
-        return response
-
 
 @login_required
 def rename_file(request):
@@ -215,7 +174,7 @@ def download_file(request):
     file_name = file_path.split('/')[-1]
     file_dir = BASE_DIR + '/static/' + file_path
     file = open(file_dir, 'rb')
-    print(file_dir)
+    # print(file_dir)
     response = FileResponse(file)
     response['Content-Type'] = 'application/octet-stream'
     response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
@@ -244,7 +203,8 @@ def upload_file(request):
         file_path = user_name + '/' + pwd + file_name
         # print(belong_folder, folder_name, save_path)
         
-        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
+        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+        # print(file_obj_exist)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
@@ -296,11 +256,31 @@ def search(request):
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
 
+def download_share_file(request):
+    if request.method == 'GET':
+        return render(request, 'share.html')
+    elif request.method == 'POST':
+        file_sharecode = request.POST.get('file_sharecode')
+        file_path = request.GET.get('file_path')
+        file_obj = models.ShareInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
+        if file_obj:
+            file_name = file_path.split('/')[-1]
+            file_dir = BASE_DIR + '/static/' + file_path
+            file = open(file_dir, 'rb')
+            print(file_dir)
+            response = FileResponse(file)
+            response['status'] = 'success'
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+        else:
+            response['status'] = 'failed'
+        return response
 
 def login(request):
     if request.method == 'GET':
         return render(request, 'login.html')
     elif request.method == "POST":
+
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = auth.authenticate(username=username, password=password)

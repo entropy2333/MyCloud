@@ -1,5 +1,9 @@
 
 .idea
+<<<<<<< HEAD
+.vscode
+dxr/
+=======
 
 .vscode/
 ddd/
@@ -13,3 +17,4 @@ __pycache__
 
 migrations
 
+>>>>>>> f5e481b5f1d78b9d25c63b9500e088f577da77c9

@@ -1,3 +1,6 @@
+import qrcode
+import base64
+
 def judge_filepath(file_type):
     img_list = ['bmp', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx', 'svg', 'psd', 'cdr', 'pcd', 'dxf',
                 'ufo', 'eps', 'ai', 'raw', 'WMF', 'webp']
@@ -30,3 +33,20 @@ def format_size(old_size):
     elif old_size > 1024 * 1024 * 1024:
         new_size = round(old_size / (1024 * 1024 * 1024), 2)
         return str(new_size) + 'GB'
+
+def gen_qrcode(file_path):
+    share_url = base64.b64encode(file_path.encode())
+    qr = qrcode.QRCode(
+        version=2,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(share_url)
+    qr.make(fit=True)
+
+    img = qr.make_image()
+    # img.save(save_path)
+    with open(save_path,"rb") as f:
+        img_str = base64.b64encode(f.read())
+    return share_url.decode(), img_str.decode()

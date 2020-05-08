@@ -30,7 +30,7 @@ $(document).ready(function () {
         );
         //排序js结束
 
-  //分类ajax开始
+        //分类ajax开始
         $(".classify_link").click(function (event) {
             var type = event.target.id;
             var $selector = $(this).attr("data-target");
@@ -60,39 +60,39 @@ $(document).ready(function () {
         });
         //分类ajax结束
 
-  //搜索ajax开始
-  $(".search_link").click(function (event) {
-    var file_name = $(" .search-input").val();
-    let arr = ["all", "doc", "img", "video", "procedure", "others"]
-            if (arr.indexOf(event.target.title) > -1) {
-                var type = event.target.title;
-            }
-            else {
-                var type = event.target.parentElement.title;
-            }
-            // var $selector = $(this).attr("data-target");
-            // var val = $(this).text();
-            $.ajax({
-                type: "get",
-                dataType: "json",
-                url: "/search/?file_name=" + file_name + "&file_type=" + type,
-                success: function (data) {
-                    var tr = $('<tr></tr>');
-                    var all_tr = '';
-                    for (var i = 0; i < data.length; i++) {
-                        var tr = '<tr></tr><td style="text-align: left"><a href="/static/' + data[i].file_path + '"><i class="fa fa-file fa-lg"></i> ' + data[i].file_name + '</a></td>\n' +
-                            '<td>' + data[i].file_size + '</td>\n' +
-                            '<td>' + data[i].update_time + '</td>\n' +
-                            '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>\n' +
-                            '&nbsp;&nbsp;&nbsp;\n' +
-                            '<button class="btn btn-danger"><span href="javascript:void(0)" class="deleteFile" title="{{ file.file_path }}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span></button>\n' +
-                            '</td></tr>'
-                        all_tr = all_tr + tr;
+        //搜索ajax开始
+        $(".search_link").click(function (event) {
+            var file_name = $(" .search-input").val();
+            let arr = ["all", "doc", "img", "video", "procedure", "others"]
+                    if (arr.indexOf(event.target.title) > -1) {
+                        var type = event.target.title;
                     }
-                    $('#myTable tbody').html(all_tr);
-                }
-            })
-        });
+                    else {
+                        var type = event.target.parentElement.title;
+                    }
+                    // var $selector = $(this).attr("data-target");
+                    // var val = $(this).text();
+                    $.ajax({
+                        type: "get",
+                        dataType: "json",
+                        url: "/search/?file_name=" + file_name + "&file_type=" + type,
+                        success: function (data) {
+                            var tr = $('<tr></tr>');
+                            var all_tr = '';
+                            for (var i = 0; i < data.length; i++) {
+                                var tr = '<tr></tr><td style="text-align: left"><a href="/static/' + data[i].file_path + '"><i class="fa fa-file fa-lg"></i> ' + data[i].file_name + '</a></td>\n' +
+                                    '<td>' + data[i].file_size + '</td>\n' +
+                                    '<td>' + data[i].update_time + '</td>\n' +
+                                    '<td><a class="btn btn-success" href="/download_file/?file_path=' + data[i].file_path + '"><i class="fa fa-cloud-download fa-lg" aria-hidden="true"></i> 下载</a>\n' +
+                                    '&nbsp;&nbsp;&nbsp;\n' +
+                                    '<button class="btn btn-danger"><span href="javascript:void(0)" class="deleteFile" title="{{ file.file_path }}"><i class="fa fa-trash fa-lg" aria-hidden="true"></i>删除</span></button>\n' +
+                                    '</td></tr>'
+                                all_tr = all_tr + tr;
+                            }
+                            $('#myTable tbody').html(all_tr);
+                        }
+                    })
+                });
         //搜索文件ajax结束
 
         //导航栏动态效果切换
@@ -245,9 +245,10 @@ $(document).ready(function () {
                 headers: { "X-CSRFToken": $.cookie("csrftoken") },
                 success: function (result) {
                     return true;
-            },
-            contentType: false, //必须false才会自动加上正确的Content-Type
-            processData: false, //必须false才会避开jQuery对 formdata 的默认处理
+                },
+                contentType: false, //必须false才会自动加上正确的Content-Type
+                processData: false, //必须false才会避开jQuery对 formdata 的默认处理
+            })
         });
 
         //关闭模态框事件

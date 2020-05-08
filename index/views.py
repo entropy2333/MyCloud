@@ -103,7 +103,7 @@ def share_file(request):
         share_url, qr_str = gen_qrcode(user_name, file_name, pwd)
         share_obj = models.ShareInfo.objects.filter(user_id=user_id, file_path=file_path)
         if share_obj:
-            share_obj.update(file_sharecode=file_sharecode)
+            share_obj.update(start_time=start_time, end_time=end_time, file_sharecode=file_sharecode)
         else:
             share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
                                     file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,

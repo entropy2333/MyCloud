@@ -1,3 +1,4 @@
+import os
 import qrcode
 import base64
 
@@ -34,7 +35,9 @@ def format_size(old_size):
         new_size = round(old_size / (1024 * 1024 * 1024), 2)
         return str(new_size) + 'GB'
 
-def gen_qrcode(file_path):
+def gen_qrcode(file_path, qr_dir):
+    if not os.path.isdir(qr_dir):
+        os.pmk
     share_url = base64.b64encode(file_path.encode())
     qr = qrcode.QRCode(
         version=2,
@@ -47,7 +50,7 @@ def gen_qrcode(file_path):
 
     img = qr.make_image()
     # save_path = '1.png'
-    save_path = base64.b64encode(file_path.encode()).decode().replace('/','-') + '.png'
+    save_path = qr_dir + share_url.decode().replace('/','-') + '.png'
     img.save(save_path)
     with open(save_path,"rb") as f:
         img_str = base64.b64encode(f.read())

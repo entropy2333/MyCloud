@@ -4,6 +4,7 @@
 dxr/
 ddd/
 mkf/
+qrcode/
 
 Pipfile
 Pipfile.lock

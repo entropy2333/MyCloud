@@ -17,6 +17,7 @@ CREATE DATABASE cloud;
 ```
 
 ```sh
+python manage.py makemigrations --empty index
 python manage.py makemigrations  
 python manage.py migrate  
 ```

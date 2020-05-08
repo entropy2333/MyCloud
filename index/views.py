@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 import shutil
 import datetime
+import base64
 # Create your views here.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -99,9 +100,12 @@ def share_file(request):
         file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=file_name, user_id=user_id)
         file_path = file_obj.file_path
         file_size = file_obj.file_size
-        share_url, qr_str = gen_qrcode(file_path)
-
-        share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
+        share_url, qr_str = gen_qrcode(user_name, file_name, pwd)
+        share_obj = models.ShareInfo.objects.filter(user_id=user_id, file_path=file_path)
+        if share_obj:
+            share_obj.update(file_sharecode=file_sharecode)
+        else:
+            share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
                                     file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
                                     share_url=share_url)
         
@@ -109,20 +113,21 @@ def share_file(request):
                             'share_url': share_url,
                             'qr_str' : qr_str})
 
-
-# 下载某一用户分享的文件 /getServerinfoDetail?user_name=
-def download_share_file(request, user_name, file_name):
+# 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
+def download_share_file(request):
     if request.method == 'GET':
         return render(request, 'share.html')
     elif request.method == 'POST':
-        user_name = request.POST.get('user_name')
+        user_name = base64.b64decode(request.GET.get('user_name', '').replace('-','/').replace('_', '+').encode()).decode()
+        file_name = base64.b64decode(request.GET.get('file_name', '').replace('-','/').replace('_', '+').encode()).decode()
+        pwd = base64.b64decode(request.GET.get('pwd', '').replace('-','/').replace('_', '+').encode()).decode()
         user_obj = User.objects.get(username=user_name)
         user_id = user_obj.id
-        file_sharecode = request.POST.get('file_sharecode')
-        file_path = request.GET.get('file_path')
-        file_obj = models.ShareInfo.objects.filter(user_id=user_id, file_name=file_name, file_sharecode__icontains=file_sharecode)
+        file_sharecode = request.POST.get('sharecode', '')
+        file_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
         if file_obj:
-            file_name = file_path.split('/')[-1]
+            file_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
+            file_path = file_obj.file_path
             file_dir = BASE_DIR + '/static/' + file_path
             file = open(file_dir, 'rb')
             print(file_dir)
@@ -130,9 +135,9 @@ def download_share_file(request, user_name, file_name):
             response['status'] = 'success'
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+            return response
         else:
-            response['status'] = 'failed'
-        return response
+            return render(request, 'share.html', {'info': "提取码错误"})
 
 
 @login_required
@@ -340,6 +345,7 @@ def register(request):
             except Exception as e:
                 return render(request, 'register.html', {'info': '用户已存在'})
             os.mkdir(user_path)
+            os.mkdir(os.path.join(user_path, 'qr'))
         else:
             return render(request, 'register.html', {'info': '两次密码不一致'})
         return redirect('/login')

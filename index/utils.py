@@ -1,5 +1,7 @@
 import qrcode
 import base64
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def judge_filepath(file_type):
     img_list = ['bmp', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx', 'svg', 'psd', 'cdr', 'pcd', 'dxf',
@@ -34,8 +36,11 @@ def format_size(old_size):
         new_size = round(old_size / (1024 * 1024 * 1024), 2)
         return str(new_size) + 'GB'
 
-def gen_qrcode(file_path):
-    share_url = base64.b64encode(file_path.encode())
+def gen_qrcode(user_name, file_name, pwd):
+    user_name_b64 = base64.b64encode(user_name.encode()).decode().replace('/', '-').replace('+', '_')
+    file_name_b64 = base64.b64encode(file_name.encode()).decode().replace('/', '-').replace('+', '_')
+    pwd_b64 = base64.b64encode(pwd.encode()).decode().replace('/', '-').replace('+', '_')
+    share_url = 'http://192.168.0.102:8000/download_share_file?user_name=' + user_name_b64 + '&file_name=' + file_name_b64 + '&pwd=' + pwd_b64
     qr = qrcode.QRCode(
         version=2,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -47,8 +52,8 @@ def gen_qrcode(file_path):
 
     img = qr.make_image()
     # save_path = '1.png'
-    save_path = base64.b64encode(file_path.encode()).decode().replace('/','-') + '.png'
+    save_path = os.path.join(BASE_DIR, 'static', user_name, 'qr', file_name + '.png')
     img.save(save_path)
     with open(save_path,"rb") as f:
         img_str = base64.b64encode(f.read())
-    return share_url.decode(), img_str.decode()
+    return share_url, img_str.decode()

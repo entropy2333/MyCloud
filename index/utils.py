@@ -46,7 +46,9 @@ def gen_qrcode(file_path):
     qr.make(fit=True)
 
     img = qr.make_image()
-    # img.save(save_path)
+    # save_path = '1.png'
+    save_path = base64.b64encode(file_path.encode()).decode().replace('/','-') + '.png'
+    img.save(save_path)
     with open(save_path,"rb") as f:
         img_str = base64.b64encode(f.read())
     return share_url.decode(), img_str.decode()

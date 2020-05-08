@@ -44,4 +44,6 @@ class ShareInfo(models.Model):
     start_time = models.DateTimeField(verbose_name='起始时间')
     end_time = models.DateTimeField(verbose_name='终止时间')
     file_size = models.CharField(max_length=16, verbose_name='文件大小')
+    belong_folder = models.CharField(max_length=64, verbose_name='所属文件夹')
     share_url = models.CharField(max_length=128, verbose_name='分享链接')
+    file_sharecode = models.CharField(max_length=16, verbose_name='分享密码')

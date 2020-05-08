@@ -9,7 +9,7 @@ from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 import shutil
-
+import datetime
 # Create your views here.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -86,22 +86,54 @@ def share_file(request):
         return redirect('/')
     elif request.method == 'POST':
         user_name = str(request.user)
+        pwd = request.POST.get('pwd', '')
+        user_name = request.POST.get('user_name')
         user_obj = User.objects.get(username=user_name)
         user_id = user_obj.id
-        file_path = request.POST.get('file_path')
-        file_name = file_path.split('/')[-1]
-        file_obj = models.FileInfo.objects.get(file_path=file_path, user_id=user_id)
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path,
-                                    file_name=file_name, start_time=update_time, end_time=end_time, file_size=file_size,
-                                    share_url=share_url)
-        share_dict = {}
+        file_name = request.POST.get('file_name')
+        share_duration = int(request.POST.get('share_duration'))
+        file_sharecode = request.POST.get('file_sharecode')
+        start_time = timezone.now()
+        end_time = start_time + datetime.timedelta(days=share_duration)
+
+        file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=file_name, user_id=user_id)
+        file_path = file_obj.file_path
+        file_size = file_obj.file_size
         share_url, qr_str = gen_qrcode(file_path)
-        share_dict['share_url'] = share_url
-        share_dict['qr_str'] = qr_str
-        return render(request, 'index.html',
-                  {'share_dict': share_dict, 'username': str(user)})
+
+        share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
+                                    file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
+                                    share_url=share_url)
+        
+        return JsonResponse({'file_sharecode': file_sharecode,
+                            'share_url': share_url,
+                            'qr_str' : qr_str})
+
+
+# 下载某一用户分享的文件 /getServerinfoDetail?user_name=
+def download_share_file(request, user_name, file_name):
+    if request.method == 'GET':
+        return render(request, 'share.html')
+    elif request.method == 'POST':
+        user_name = request.POST.get('user_name')
+        user_obj = User.objects.get(username=user_name)
+        user_id = user_obj.id
+        file_sharecode = request.POST.get('file_sharecode')
+        file_path = request.GET.get('file_path')
+        file_obj = models.ShareInfo.objects.filter(user_id=user_id, file_name=file_name, file_sharecode__icontains=file_sharecode)
+        if file_obj:
+            file_name = file_path.split('/')[-1]
+            file_dir = BASE_DIR + '/static/' + file_path
+            file = open(file_dir, 'rb')
+            print(file_dir)
+            response = FileResponse(file)
+            response['status'] = 'success'
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+        else:
+            response['status'] = 'failed'
+        return response
+
 
 @login_required
 def rename_file(request):
@@ -214,8 +246,8 @@ def upload_file(request):
         file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
         pwd = request.POST.get('file_path')
 
-
         update_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+        # print(timezone.now()+datetime.timedelta(days=30))
         file_size = format_size(file_obj.size)
         file_name = file_obj.name
         file_suffix = file_name.split('.')[-1]
@@ -225,13 +257,13 @@ def upload_file(request):
         file_path = user_name + '/' + pwd + file_name
         # print(belong_folder, folder_name, save_path)
         
-        file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
+        file_obj_exist = models.FileInfo.objects.filter(belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
         # print(file_obj_exist)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
             file_name = file_name.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
-            file_obj_exist = models.FileInfo.objects.filter(file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
+            file_obj_exist = models.FileInfo.objects.filter(belong_folder=pwd, file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
 
         file_path = file_path.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
 
@@ -278,25 +310,6 @@ def search(request):
                           'file_type': file.file_type})
     return JsonResponse(file_list, safe=False)
 
-def download_share_file(request):
-    if request.method == 'GET':
-        return render(request, 'share.html')
-    elif request.method == 'POST':
-        file_sharecode = request.POST.get('file_sharecode')
-        file_path = request.GET.get('file_path')
-        file_obj = models.ShareInfo.objects.filter(file_path=file_path, file_sharecode__icontains=file_sharecode)
-        if file_obj:
-            file_name = file_path.split('/')[-1]
-            file_dir = BASE_DIR + '/static/' + file_path
-            file = open(file_dir, 'rb')
-            print(file_dir)
-            response = FileResponse(file)
-            response['status'] = 'success'
-            response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
-        else:
-            response['status'] = 'failed'
-        return response
 
 def login(request):
     if request.method == 'GET':

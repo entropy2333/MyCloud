@@ -339,6 +339,8 @@ def register(request):
         return render(request, 'register.html')
     elif request.method == "POST":
         username = request.POST.get('username')
+        while (username[-1] == ' '):
+            username = username[:-1]
         password = request.POST.get('password')
         repassword = request.POST.get('repassword')
         user_path = os.path.join(BASE_DIR, 'static', username)

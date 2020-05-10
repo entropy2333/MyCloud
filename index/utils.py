@@ -42,7 +42,7 @@ def gen_qrcode(user_name, file_name, pwd):
     user_name_b64 = base64.b64encode(user_name.encode()).decode().replace('/', '-').replace('+', '_')
     file_name_b64 = base64.b64encode(file_name.encode()).decode().replace('/', '-').replace('+', '_')
     pwd_b64 = base64.b64encode(pwd.encode()).decode().replace('/', '-').replace('+', '_')
-    share_url = 'http://192.168.0.102:8000/download_share_file?user_name=' + user_name_b64 + '&file_name=' + file_name_b64 + '&pwd=' + pwd_b64
+    share_url = 'http://39.101.164.48:8000/download_share_file?user_name=' + user_name_b64 + '&file_name=' + file_name_b64 + '&pwd=' + pwd_b64
     qr = qrcode.QRCode(
         version=2,
         error_correction=qrcode.constants.ERROR_CORRECT_L,

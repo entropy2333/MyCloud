@@ -225,7 +225,8 @@ $(document).ready(function () {
 		window.location.reload();
 	});
 
-	//重命名文件
+
+  //重命名文件
 	$("#RenameFileModal").on("shown.bs.modal", function (event) {
 		var oldname = $(event.relatedTarget).data("oldname");
 		var file_name = oldname.split(".")[0];
@@ -238,12 +239,15 @@ $(document).ready(function () {
 		$("#rename_file_pwd").val(dir);
 	});
 
-	$("#ShareModal").on("shown.bs.modal", function (event) {
-		var file_name = $(event.relatedTarget).data("filename");
-		// alert(file_name);
-		$("#share_filename").attr("value", file_name);
-	});
-
+  //分享文件
+  $("#ShareModal").on("shown.bs.modal", function (event) {
+    var file_name = $(event.relatedTarget).data("filename");
+    // alert(file_name);
+    $("#share_filename").attr("value", file_name);
+    $("#file_sharecode").attr("value", "");
+  });
+  
+  
 	$(".shareFileurl").click(function () {
 		var pwd = $("#pwd").text();
 		var user_name = document.getElementsByName("share_username")[0].value;
@@ -258,28 +262,42 @@ $(document).ready(function () {
 		formData.append("file_name", file_name);
 		formData.append("file_sharecode", file_sharecode);
 		formData.append("share_duration", share_duration);
+    $.ajax({
+      url: "/share_file/",
+      type: "POST",
+      dataType: "json",
+      data: formData,
+      headers: { "X-CSRFToken": $.cookie("csrftoken") },
+      success: function (result) {
+        $("#ShareurlModal").modal("show");
+        $("#share_url").attr("value", result.share_url);
+        // var code = document.getElementsByName("file_sharecode")[0].value;
+        $("#share_code").attr("value", result.file_sharecode);
+        $("#file_share_qr").attr(
+          "src",
+          "data:image/png;base64," + result.qr_str
+        );
+        var clipBoard =
+          "分享链接：" +
+          result.share_url +
+          "  提取码：" +
+          (result.file_sharecode == "" ? "无" : result.file_sharecode);
+        $("#share_copy").attr("value", clipBoard);
+      },
+      contentType: false, //必须false才会自动加上正确的Content-Type
+      processData: false, //必须false才会避开jQuery对 formdata 的默认处理
+    });
+  });
 
-		$.ajax({
-			url: "/share_file/",
-			type: "POST",
-			dataType: "json",
-			data: formData,
-			headers: { "X-CSRFToken": $.cookie("csrftoken") },
-			success: function (result) {
-				$("#ShareurlModal").modal("show");
-				$("#file_url").attr("value", result.share_url);
-				var code = document.getElementsByName("file_sharecode")[0].value;
-				$("#share_code").attr("value", code);
-				$("#file_share_qr").attr(
-					"src",
-					"data:image/png;base64," + result.qr_str
-				);
-			},
-			contentType: false, //必须false才会自动加上正确的Content-Type
-			processData: false, //必须false才会避开jQuery对 formdata 的默认处理
-		});
-	});
-	// function base64_2_img() {
+  $(".CopyShareUrl").click(function () {
+    // var shareurl = document.getElementsByName("share_url")[0].value;
+    // var sharecode = document.getElementsByName("share_code")[0].value;
+    var clipBoardContent = document.getElementsByName("share_copy")[0];
+    // alert(clipBoardContent.value);
+    clipBoardContent.select(); // 选择对象
+    document.execCommand("Copy"); // 执行浏览器复制命令
+    alert("复制成功!");
+  });
 
 	// }
 

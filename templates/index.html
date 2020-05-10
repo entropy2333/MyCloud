@@ -286,8 +286,7 @@
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">关闭
                                                     </button>
-                                                    <button class="btn btn-info" data-toggle="modal" 
-                                                        >
+                                                    <button class="btn btn-info" data-toggle="modal">
                                                         <span class="shareFileurl" title="{{ file.file_path }}">
                                                         <i class="fa fa-share-alt" aria-hidden="true"></i> 生成分享链接</span>
                                                     </button>
@@ -313,15 +312,14 @@
                                                 <div class="modal-body">
                                                     <div class="input-group">
                                                         <span class="input-group-addon"> 分享链接:</span>
-                                                        <input type="text" class="form-control" id="file_url" value="" readonly="readonly" name="file_url">
+                                                        <input type="text" class="form-control" id="share_url" readonly="readonly" name="share_url">
                                                     </div>
                                                     <div class="input-group">
                                                         <span class="input-group-addon">分享密码:</span>
-                                                        <input type="text" class="form-control" id="share_code" placeholder="" readonly="readonly" name="share_code">
+                                                        <input type="text" class="form-control" id="share_code" readonly="readonly" name="share_code">
                                                     </div>
                                                     <div class="input-group">
                                                         <span class="input-group-addon"> 二 维 码 :</span>
-                                                        {% comment %} <img width="16" height="16" alt="star" src="data:image/gif;base64" {% endcomment %}
                                                         <img type="image" class="form-group" id="file_share_qr"
                                                             src="data:image/png;base64,"
                                                                 align="left" height="20%" width="20%" readonly="readonly" name="file_share_qr">
@@ -330,8 +328,7 @@
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">关闭
                                                     </button>
-                                                    <button class="btn btn-info" data-toggle="modal" 
-                                                        data-target="#ShareurlModal{{ file.id }}">
+                                                    <button class="btn btn-info">
                                                         <span class="CopyShareUrl" title="{{ file.file_path }}">
                                                         <i class="fa fa-share-alt" aria-hidden="true"></i> 复制分享链接</span>
                                                     </button>

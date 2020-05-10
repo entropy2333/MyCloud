@@ -241,6 +241,7 @@ $(document).ready(function () {
     var file_name = $(event.relatedTarget).data("filename");
     // alert(file_name);
     $("#share_filename").attr("value", file_name);
+    $('#file_sharecode').attr("value", "")
   });
 
   $(".shareFileurl").click(function () {
@@ -266,9 +267,9 @@ $(document).ready(function () {
       headers: { "X-CSRFToken": $.cookie("csrftoken") },
       success: function (result) {
         $("#ShareurlModal").modal("show");
-        $("#file_url").attr("value", result.share_url);
-        var code = document.getElementsByName("file_sharecode")[0].value;
-        $("#share_code").attr("value", code);
+        $("#share_url").attr("value", result.share_url);
+        // var code = document.getElementsByName("file_sharecode")[0].value;
+        $("#share_code").attr("value", result.file_sharecode);
         $("#file_share_qr").attr(
           "src",
           "data:image/png;base64," + result.qr_str
@@ -278,8 +279,14 @@ $(document).ready(function () {
       processData: false, //必须false才会避开jQuery对 formdata 的默认处理
     });
   });
-  // function base64_2_img() {
 
+  $(".CopyShareUrl").click(function copyUrl() {
+    var shareurl=document.getElementsByName("share_url")[0].value;
+    var sharecode=document.getElementsByName("share_code")[0].value;
+    var clipBoardContent = "分享链接：" + shareurl + "  提取码：" + sharecode;
+    window.clipboardData.setData("Text", clipBoardContent);
+    alert("复制成功!");
+  }
   // }
 
   //关闭模态框事件

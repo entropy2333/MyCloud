@@ -153,7 +153,7 @@ $(document).ready(function () {
 		$.ajax({
 			url: "/upload_file/",
 			type: "POST",
-			async: false,
+			// async: false,
 			dataType: "json",
 			data: formData,
 			headers: { "X-CSRFToken": $.cookie("csrftoken") },
@@ -178,13 +178,13 @@ $(document).ready(function () {
 			contentType: false, //必须false才会自动加上正确的Content-Type
 			processData: false, //必须false才会避开jQuery对 formdata 的默认处理
 		});
-		window.location.reload();
+		// window.location.reload();
 	});
 
 	//上传进度回调函数：
 	function progressHandlingFunction(e) {
 		if (e.lengthComputable) {
-			//$('.progress > div').attr({value: e.loaded, max: e.total}); //更新数据到进度条
+			// $('.progress > div').attr({value: e.loaded, max: e.total}); //更新数据到进度条
 			var percent = (e.loaded / e.total) * 100;
 			$("#prog").html(percent.toFixed(2) + "%");
 			$("#prog").css("width", percent.toFixed(2) + "%");

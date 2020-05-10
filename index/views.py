@@ -115,18 +115,18 @@ def share_file(request):
 
 # 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
 def download_share_file(request):
+    user_name = base64.b64decode(request.GET.get('user_name', '').replace('-','/').replace('_', '+').encode()).decode()
+    file_name = base64.b64decode(request.GET.get('file_name', '').replace('-','/').replace('_', '+').encode()).decode()
+    pwd = base64.b64decode(request.GET.get('pwd', '').replace('-','/').replace('_', '+').encode()).decode()
+    user_obj = User.objects.get(username=user_name)
+    user_id = user_obj.id
+    file_sharecode = request.POST.get('sharecode', '')
     if request.method == 'GET':
-        return render(request, 'share.html')
-    elif request.method == 'POST':
-        user_name = base64.b64decode(request.GET.get('user_name', '').replace('-','/').replace('_', '+').encode()).decode()
-        file_name = base64.b64decode(request.GET.get('file_name', '').replace('-','/').replace('_', '+').encode()).decode()
-        pwd = base64.b64decode(request.GET.get('pwd', '').replace('-','/').replace('_', '+').encode()).decode()
-        user_obj = User.objects.get(username=user_name)
-        user_id = user_obj.id
-        file_sharecode = request.POST.get('sharecode', '')
         share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name)
         if not share_obj:
             return render(request, '404.html')
+        return render(request, 'share.html')
+    elif request.method == 'POST':
         share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
         if share_obj:
             share_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)

@@ -241,7 +241,7 @@ $(document).ready(function () {
     var file_name = $(event.relatedTarget).data("filename");
     // alert(file_name);
     $("#share_filename").attr("value", file_name);
-    $('#file_sharecode').attr("value", "")
+    $("#file_sharecode").attr("value", "");
   });
 
   $(".shareFileurl").click(function () {
@@ -274,20 +274,27 @@ $(document).ready(function () {
           "src",
           "data:image/png;base64," + result.qr_str
         );
+        var clipBoard =
+          "分享链接：" +
+          result.share_url +
+          "  提取码：" +
+          (result.file_sharecode == "" ? "无" : result.file_sharecode);
+        $("#share_copy").attr("value", clipBoard);
       },
       contentType: false, //必须false才会自动加上正确的Content-Type
       processData: false, //必须false才会避开jQuery对 formdata 的默认处理
     });
   });
 
-  $(".CopyShareUrl").click(function copyUrl() {
-    var shareurl=document.getElementsByName("share_url")[0].value;
-    var sharecode=document.getElementsByName("share_code")[0].value;
-    var clipBoardContent = "分享链接：" + shareurl + "  提取码：" + sharecode;
-    window.clipboardData.setData("Text", clipBoardContent);
+  $(".CopyShareUrl").click(function () {
+    // var shareurl = document.getElementsByName("share_url")[0].value;
+    // var sharecode = document.getElementsByName("share_code")[0].value;
+    var clipBoardContent = document.getElementsByName("share_copy")[0];
+    // alert(clipBoardContent.value);
+    clipBoardContent.select(); // 选择对象
+    document.execCommand("Copy"); // 执行浏览器复制命令
     alert("复制成功!");
-  }
-  // }
+  });
 
   //关闭模态框事件
 

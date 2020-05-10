@@ -124,10 +124,13 @@ def download_share_file(request):
         user_obj = User.objects.get(username=user_name)
         user_id = user_obj.id
         file_sharecode = request.POST.get('sharecode', '')
-        file_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
-        if file_obj:
-            file_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
-            file_path = file_obj.file_path
+        share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name)
+        if not share_obj:
+            return render(request, '404.html')
+        share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
+        if share_obj:
+            share_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
+            file_path = share_obj.file_path
             file_dir = BASE_DIR + '/static/' + file_path
             file = open(file_dir, 'rb')
             print(file_dir)
@@ -152,14 +155,18 @@ def rename_file(request):
         new_file_name = request.POST.get('new_file_name')+'.'+file_type
         pwd = request.POST.get('pwd', '')
         file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+        share_obj = models.ShareInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
         old_path = file_obj.file_path
         new_path = old_path.replace(old_file_name, new_file_name)
         file_obj.file_path = new_path
+        share_obj.file_path = new_path
         old_full_path = BASE_DIR + '/static/' + old_path
         new_full_path = BASE_DIR + '/static/' + new_path
         os.rename(old_full_path, new_full_path)
         file_obj.file_name = new_file_name
+        share_obj.file_name = new_file_name
         file_obj.save()
+        share_obj.save()
         return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 

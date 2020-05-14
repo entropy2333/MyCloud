@@ -159,7 +159,6 @@ $(document).ready(function () {
 			headers: { "X-CSRFToken": $.cookie("csrftoken") },
 			xhr: function () {
 				//获取ajaxSettings中的xhr对象，为它的upload属性绑定progress事件的处理函数
-
 				myXhr = $.ajaxSettings.xhr();
 				if (myXhr.upload) {
 					//检查upload属性是否存在
@@ -199,32 +198,31 @@ $(document).ready(function () {
 		window.location.reload();
 	});
 
-	//删除文件
-	$(".deleteFile").click(function (event) {
-		// var file_id = event.target.name;
-		if (event.target.className == "fa fa-trash fa-lg") {
-			var file_path = event.target.parentElement.title;
-		} else {
-			var file_path = event.target.title;
-		}
-		var pwd = $("#pwd").text();
-		var formData = new FormData();
-		formData.append("pwd", pwd);
-		formData.append("file_path", file_path);
-		$.ajax({
-			url: "/delete_file/",
-			type: "POST",
-			async: false,
-			dataType: "json",
-			data: formData,
-			headers: { "X-CSRFToken": $.cookie("csrftoken") },
-			success: function (result) {},
-			contentType: false, //必须false才会自动加上正确的Content-Type
-			processData: false, //必须false才会避开jQuery对 formdata 的默认处理
-		});
-		window.location.reload();
-	});
-
+  //删除文件
+  $(".deleteFile").click(function (event) {
+    // var file_id = event.target.name;
+    if (event.target.className == "fa fa-trash fa-lg") {
+      var file_path = event.target.parentElement.title;
+    } else {
+      var file_path = event.target.title;
+    }
+    var pwd = $("#pwd").text();
+    var formData = new FormData();
+    formData.append("pwd", pwd);
+    formData.append("file_path", file_path);
+    $.ajax({
+      url: "/delete_file/",
+      type: "POST",
+      // async: false,
+      dataType: "json",
+      data: formData,
+      headers: { "X-CSRFToken": $.cookie("csrftoken") },
+      success: function (result) {},
+      contentType: false, //必须false才会自动加上正确的Content-Type
+      processData: false, //必须false才会避开jQuery对 formdata 的默认处理
+    });
+    // window.location.reload();
+  });
 
   //重命名文件
 	$("#RenameFileModal").on("shown.bs.modal", function (event) {

@@ -157,18 +157,20 @@ def rename_file(request):
         new_file_name = request.POST.get('new_file_name')+'.'+file_type
         pwd = request.POST.get('pwd', '')
         file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
-        share_obj = models.ShareInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
         old_path = file_obj.file_path
         new_path = old_path.replace(old_file_name, new_file_name)
         file_obj.file_path = new_path
-        share_obj.file_path = new_path
         old_full_path = BASE_DIR + '/static/' + old_path
         new_full_path = BASE_DIR + '/static/' + new_path
         os.rename(old_full_path, new_full_path)
         file_obj.file_name = new_file_name
-        share_obj.file_name = new_file_name
         file_obj.save()
-        share_obj.save()
+        share_obj = models.ShareInfo.objects.filter(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+        if share_obj:
+            share_obj = models.ShareInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+            share_obj.file_path = new_path
+            share_obj.file_name = new_file_name
+            share_obj.save()
         return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 

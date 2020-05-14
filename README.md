@@ -12,7 +12,7 @@
 ### Initialize Database
 
 ```sql
-mysql -uroot -p
+mysql -u root -p
 CREATE DATABASE cloud;
 ```
 

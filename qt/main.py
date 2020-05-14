@@ -1,16 +1,47 @@
 import sys
+import os
+root_path = os.getcwd()
+sys.path.append(f'{root_path}\\qt')
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
+from PyQt5 import QtCore, QtGui, QtWidgets
 from UI.Ui_main_window import Ui_MainWindow
 from UI.Ui_login import Ui_LoginWindow
 from UI.Ui_register import Ui_RegisterWindow
-from PyQt5 import QtCore, QtGui, QtWidgets
+from utils.VerificationCode import WidgetCode
+from utils.FramelessDialog import *
 
 
-BACKGROUND_COLOR = 	'#F8F8FF'
+ABSOLUTE_PATH = os.path.dirname(__file__)
+BACKGROUND_COLOR = '#F8F8FF'
 TITLE_COLOR = '#F0E68C'
+GLOBAL_BUTTON = """
+#closeButton{
+    max-width: 36px;
+    max-height: 36px;
+    font-size: 12px;
+    font-family: "Webdings";
+    qproperty-text: "r";
+    border-radius: 10px;
+}
+#closeButton:hover{
+    color: white;
+    background: red;
+}
+#minButton{
+    max-width: 36px;
+    max-height: 36px;
+    font-family: "Webdings";
+    font-size: 12px;
+    qproperty-text: "0";
+    border-radius: 10px;
+}
+#minButton:hover{
+    background: #F8F8FF;
+}
+"""
 
 
 # 主窗口
@@ -27,18 +58,14 @@ class Main_window(QMainWindow, Ui_MainWindow):
         Qss =  'QWidget#widget{background-color: %s;border-top-left-radius:10px;border-top-right-radius:10px}' % TITLE_COLOR
         Qss += 'QWidget#widget_2{background-color: #F5F5F5;border-bottom-left-radius:10px}' 
         Qss += 'QWidget#widget_3{background-color: %s;border-bottom-right-radius:10px}' % BACKGROUND_COLOR
-        # 关闭按钮
-        Qss += 'QPushButton#pushButton_2{background-color: %s;border-image:url(./qt/img/btn_close_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_2:hover{border-image:url(./qt/img/btn_close_down2.png);border-radius:5px;}'
-        Qss += 'QPushButton#pushButton_2:pressed{border-image:url(./qt/img/btn_close_down.png);border-radius:5px;}'
-        # 最小化按钮
-        Qss += 'QPushButton#pushButton{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton:hover{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % BACKGROUND_COLOR
-        Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % BACKGROUND_COLOR
+        Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss) # 边框部分qss重载
 
-        self.pushButton.clicked.connect(self.showMinimized)
-        self.pushButton_2.clicked.connect(self.close)
+        # 添加logo
+        self.logo.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/logo.png').scaled(self.logo.width(), self.logo.height()))
+
+        self.minButton.clicked.connect(self.showMinimized)
+        self.closeButton.clicked.connect(self.close)
 
     # 鼠标左键按下变小手
     def mousePressEvent(self, event):
@@ -70,6 +97,8 @@ class Login_window(QMainWindow, Ui_LoginWindow):
         # self.setWindowOpacity(0.9) # 设置窗口透明度
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 去掉窗口标题栏
+        self.pushButton_4.setObjectName('closeButton')
+        self.pushButton_3.setObjectName('minButton')
         # widget美化
         Qss =  'QWidget#widget{background-color: %s;border-bottom-left-radius:10px;border-bottom-right-radius:10px}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_2{background-color: %s;border-top-left-radius:10px;border-top-right-radius:10px}' % TITLE_COLOR
@@ -81,26 +110,27 @@ class Login_window(QMainWindow, Ui_LoginWindow):
         Qss += 'QPushButton#pushButton{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        # 关闭按钮
-        Qss += 'QPushButton#pushButton_4{background-color: %s;border-image:url(./qt/img/btn_close_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_4:hover{border-image:url(./qt/img/btn_close_down2.png);border-radius:5px;}'
-        Qss += 'QPushButton#pushButton_4:pressed{border-image:url(./qt/img/btn_close_down.png);border-radius:5px;}'
-        # 最小化按钮
-        Qss += 'QPushButton#pushButton_3{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_3:hover{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % BACKGROUND_COLOR
-        Qss += 'QPushButton#pushButton_3:pressed{background-color: %s;border-radius:5px;}' % BACKGROUND_COLOR
+        Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss) # 边框部分qss重载
 
         self.pushButton.clicked.connect(self.btn_login)
         self.pushButton_2.clicked.connect(self.btn_register)
         self.pushButton_3.clicked.connect(self.showMinimized)
         self.pushButton_4.clicked.connect(self.close)
+        self.code = WidgetCode(self.widget_3, minimumHeight=35, minimumWidth=80)  # 添加验证码
 
     # 登陆按钮事件
     def btn_login(self):
-        self.main_window = Main_window()
-        self.main_window.show()
-        self.close()
+        # 验证码验证
+        code_check = self.code.check(self.lineEdit_3.text())
+        if not code_check:
+            self.main_window = Main_window()
+            self.main_window.show()
+            self.close()
+        else:
+            self.warn_dialog = Warn_Dialog()
+            self.warn_dialog.label.setText('验证码错误！')
+            self.warn_dialog.show()
 
     # 注册按钮事件
     def btn_register(self):
@@ -139,21 +169,16 @@ class Register_window(QMainWindow, Ui_RegisterWindow):
         # self.setWindowOpacity(0.9) # 设置窗口透明度
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 去掉窗口标题栏
+        self.pushButton_4.setObjectName('closeButton')
+        self.pushButton_3.setObjectName('minButton')
         # widget美化
         Qss =  'QWidget#widget{background-color: %s;border-bottom-left-radius:10px;border-bottom-right-radius:10px}' % BACKGROUND_COLOR
-        Qss += 'QWidget#widget_2{background-color: %s;border-top-left-radius:10px;border-top-right-radius:10px}' % TITLE_COLOR
+        Qss += 'QWidget#widget_3{background-color: %s;border-top-left-radius:10px;border-top-right-radius:10px}' % TITLE_COLOR
         # 注册按钮
         Qss += 'QPushButton#pushButton{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        # 关闭按钮
-        Qss += 'QPushButton#pushButton_4{background-color: %s;border-image:url(./qt/img/btn_close_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_4:hover{border-image:url(./qt/img/btn_close_down2.png);border-radius:5px;}'
-        Qss += 'QPushButton#pushButton_4:pressed{border-image:url(./qt/img/btn_close_down.png);border-radius:5px;}'
-        # 最小化按钮
-        Qss += 'QPushButton#pushButton_3{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_3:hover{background-color: %s;border-image:url(./qt/img/btn_min_normal.png);border-radius:5px;}' % BACKGROUND_COLOR
-        Qss += 'QPushButton#pushButton_3:pressed{background-color: %s;border-radius:5px;}' % BACKGROUND_COLOR
+        Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss) # 边框部分qss重载
 
         self.pushButton.clicked.connect(self.btn_register)

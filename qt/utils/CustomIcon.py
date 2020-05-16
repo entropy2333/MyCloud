@@ -7,7 +7,7 @@ Created on 2018年1月26日
 @site: https://pyqt5.com , https://github.com/892768447
 @email: 892768447@qq.com
 @file: FileSystemModel
-@description: 
+@description: 文件树显示，自定义文件图标
 """
 import sys
 

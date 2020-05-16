@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'd:\coding\python\MyCloud\qt\UI\info_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.14.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -15,7 +15,7 @@ class Ui_Info_Dialog(object):
         Info_Dialog.setObjectName("Info_Dialog")
         Info_Dialog.resize(484, 267)
         self.widget = QtWidgets.QWidget(Info_Dialog)
-        self.widget.setGeometry(QtCore.QRect(50, 70, 361, 141))
+        self.widget.setGeometry(QtCore.QRect(50, 70, 361, 151))
         font = QtGui.QFont()
         font.setFamily("Adobe Devanagari")
         font.setPointSize(8)
@@ -33,7 +33,7 @@ class Ui_Info_Dialog(object):
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.pushButton = QtWidgets.QPushButton(self.widget)
-        self.pushButton.setGeometry(QtCore.QRect(130, 100, 111, 31))
+        self.pushButton.setGeometry(QtCore.QRect(120, 100, 111, 31))
         font = QtGui.QFont()
         font.setFamily("幼圆")
         font.setPointSize(9)
@@ -42,10 +42,10 @@ class Ui_Info_Dialog(object):
         self.pushButton.setFont(font)
         self.pushButton.setObjectName("pushButton")
         self.widget_2 = QtWidgets.QWidget(Info_Dialog)
-        self.widget_2.setGeometry(QtCore.QRect(50, 40, 361, 31))
+        self.widget_2.setGeometry(QtCore.QRect(50, 30, 361, 41))
         self.widget_2.setObjectName("widget_2")
         self.label_2 = QtWidgets.QLabel(self.widget_2)
-        self.label_2.setGeometry(QtCore.QRect(160, 6, 41, 20))
+        self.label_2.setGeometry(QtCore.QRect(160, 10, 41, 20))
         font = QtGui.QFont()
         font.setFamily("Consolas")
         font.setPointSize(10)

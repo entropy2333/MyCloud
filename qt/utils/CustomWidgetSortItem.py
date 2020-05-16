@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QListView,\
 # site: https://pyqt5.com , https://github.com/892768447
 # email: 892768447@qq.com
 # file: QListView.显示自定义Widget并排序
-# description:
+# description: 列表排序？
 __Author__ = """By: Irony
 QQ: 892768447
 Email: 892768447@qq.com"""

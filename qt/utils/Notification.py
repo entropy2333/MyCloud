@@ -7,7 +7,7 @@ Created on 2018年9月9日
 @site: https://pyqt5.com , https://github.com/892768447
 @email: 892768447@qq.com
 @file: Notification
-@description: 
+@description: 右上方显示通知信息，自动关闭
 """
 import base64
 

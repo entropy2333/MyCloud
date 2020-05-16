@@ -7,7 +7,7 @@ Created on 2017年4月6日
 @site: https://pyqt5.com , https://github.com/892768447
 @email: 892768447@qq.com
 @file: ViewOffice
-@description: 
+@description: 显示word、excel、pdf
 '''
 from PyQt5.QAxContainer import QAxWidget
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog,\

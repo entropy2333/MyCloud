@@ -7,7 +7,7 @@ Created on 2017年4月5日
 @site: https://pyqt5.com , https://github.com/892768447
 @email: 892768447@qq.com
 @file: widgets.WidgetCode
-@description: 
+@description: 验证码
 '''
 from random import sample
 import string

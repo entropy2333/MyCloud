@@ -7,7 +7,7 @@ Created on 2018年8月22日
 @site: https://pyqt5.com , https://github.com/892768447
 @email: 892768447@qq.com
 @file: MenuAnimation
-@description: 
+@description: 右键菜单动画
 """
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QRect
 from PyQt5.QtWidgets import QWidget, QMenu, QApplication

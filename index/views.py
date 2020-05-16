@@ -129,8 +129,8 @@ def download_share_file(request):
     elif request.method == 'POST':
         share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
         if share_obj:
-            share_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
-            file_path = share_obj.file_path
+            # share_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
+            file_path = share_obj[0].file_path
             file_dir = BASE_DIR + '/static/' + file_path
             file = open(file_dir, 'rb')
             print(file_dir)
@@ -165,10 +165,9 @@ def rename_file(request):
         file_obj.save()
         share_obj = models.ShareInfo.objects.filter(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
         if share_obj:
-            share_obj = models.ShareInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
-            share_obj.file_path = new_path
-            share_obj.file_name = new_file_name
-            share_obj.save()
+            share_obj[0].file_path = new_path
+            share_obj[0].file_name = new_file_name
+            share_obj[0].save()
         return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 
@@ -273,6 +272,8 @@ def upload_file(request):
         
         file_obj_exist = models.FileInfo.objects.filter(belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
         # print(file_obj_exist)
+        # print(len(file_obj_exist))
+        # print(file_obj_exist[0].file_type)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')

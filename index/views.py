@@ -2,6 +2,7 @@ import base64
 import datetime
 import os
 import shutil
+import hashlib
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
@@ -24,8 +25,10 @@ def index(request):
     user = request.user
     ua = request.GET.get('ua', '')
     user_id = User.objects.get(username=user).id
-    file_obj = models.FileInfo.objects.filter(user_id=user_id, belong_folder='')
-    folder_obj = models.FolderInfo.objects.filter(user_id=user_id, belong_folder='')
+    file_obj = models.FileInfo.objects.filter(
+        user_id=user_id, belong_folder='')
+    folder_obj = models.FolderInfo.objects.filter(
+        user_id=user_id, belong_folder='')
     if not ua:
         index_list = []
         for file in file_obj:
@@ -36,7 +39,7 @@ def index(request):
             index_list.append(folder)
         breadcrumb_list = [{'tag': '全部文件', 'uri': ''}]
         return render(request, 'index.html',
-                    {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
+                      {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
     elif ua == 'pyqt':
         file_list = []
         folder_list = []
@@ -72,8 +75,10 @@ def folder(request):
             belong_folder = pdir + '/'
     else:
         belong_folder = ''
-    file_obj = models.FileInfo.objects.filter(user_id=user_id, belong_folder=belong_folder)
-    folder_obj = models.FolderInfo.objects.filter(user_id=user_id, belong_folder=belong_folder)
+    file_obj = models.FileInfo.objects.filter(
+        user_id=user_id, belong_folder=belong_folder)
+    folder_obj = models.FolderInfo.objects.filter(
+        user_id=user_id, belong_folder=belong_folder)
     index_list = []
     for file in file_obj:
         file.is_file = True
@@ -101,7 +106,8 @@ def delete_file(request):
         file_path = request.POST.get('file_path')
         user_id = user_obj.id
         pwd = request.POST.get('pwd')
-        models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
+        models.FileInfo.objects.get(
+            file_path=file_path, user_id=user_id).delete()
         try:
             os.remove(BASE_DIR + '/static/' + file_path)
         except Exception as e:
@@ -125,38 +131,48 @@ def share_file(request):
         start_time = timezone.now()
         end_time = start_time + datetime.timedelta(days=share_duration)
 
-        file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=file_name, user_id=user_id)
+        file_obj = models.FileInfo.objects.get(
+            belong_folder=pwd, file_name=file_name, user_id=user_id)
         file_path = file_obj.file_path
         file_size = file_obj.file_size
         share_url, qr_str = gen_qrcode(user_name, file_name, pwd)
-        share_obj = models.ShareInfo.objects.filter(user_id=user_id, file_path=file_path)
+        share_obj = models.ShareInfo.objects.filter(
+            user_id=user_id, file_path=file_path)
         if share_obj:
-            share_obj.update(start_time=start_time, end_time=end_time, file_sharecode=file_sharecode)
+            share_obj.update(start_time=start_time,
+                             end_time=end_time, file_sharecode=file_sharecode)
         else:
             share_obj = models.ShareInfo.objects.create(user_id=user_id, file_path=file_path, file_sharecode=file_sharecode,
 
-                                    file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
-                                    belong_folder=pwd, share_url=share_url)
-        
+                                                        file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
+                                                        belong_folder=pwd, share_url=share_url)
+
         return JsonResponse({'file_sharecode': file_sharecode,
-                            'share_url': share_url,
-                            'qr_str' : qr_str})
+                             'share_url': share_url,
+                             'qr_str': qr_str})
 
 # 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
+
+
 def download_share_file(request):
-    user_name = base64.b64decode(request.GET.get('user_name', '').replace('-','/').replace('_', '+').encode()).decode()
-    file_name = base64.b64decode(request.GET.get('file_name', '').replace('-','/').replace('_', '+').encode()).decode()
-    pwd = base64.b64decode(request.GET.get('pwd', '').replace('-','/').replace('_', '+').encode()).decode()
+    user_name = base64.b64decode(request.GET.get('user_name', '').replace(
+        '-', '/').replace('_', '+').encode()).decode()
+    file_name = base64.b64decode(request.GET.get('file_name', '').replace(
+        '-', '/').replace('_', '+').encode()).decode()
+    pwd = base64.b64decode(request.GET.get('pwd', '').replace(
+        '-', '/').replace('_', '+').encode()).decode()
     user_obj = User.objects.get(username=user_name)
     user_id = user_obj.id
     file_sharecode = request.POST.get('sharecode', '')
     if request.method == 'GET':
-        share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name)
+        share_obj = models.ShareInfo.objects.filter(
+            user_id=user_id, belong_folder__exact=pwd, file_name=file_name)
         if not share_obj:
             return render(request, '404.html')
         return render(request, 'share.html')
     elif request.method == 'POST':
-        share_obj = models.ShareInfo.objects.filter(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
+        share_obj = models.ShareInfo.objects.filter(
+            user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
         if share_obj:
             # share_obj = models.ShareInfo.objects.get(user_id=user_id, belong_folder__exact=pwd, file_name=file_name, file_sharecode__exact=file_sharecode)
             file_path = share_obj[0].file_path
@@ -166,7 +182,8 @@ def download_share_file(request):
             response = FileResponse(file)
             response['status'] = 'success'
             response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+            response['Content-Disposition'] = 'attachment;filename={}'.format(
+                urlquote(file_name))
             return response
         else:
             return render(request, 'share.html', {'info': "提取码错误"})
@@ -183,7 +200,8 @@ def rename_file(request):
         file_type = old_file_name.split('.')[-1]
         new_file_name = request.POST.get('new_file_name')+'.'+file_type
         pwd = request.POST.get('pwd', '')
-        file_obj = models.FileInfo.objects.get(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+        file_obj = models.FileInfo.objects.get(
+            belong_folder=pwd, file_name=old_file_name, user_id=user_id)
         old_path = file_obj.file_path
         new_path = old_path.replace(old_file_name, new_file_name)
         file_obj.file_path = new_path
@@ -192,7 +210,8 @@ def rename_file(request):
         os.rename(old_full_path, new_full_path)
         file_obj.file_name = new_file_name
         file_obj.save()
-        share_obj = models.ShareInfo.objects.filter(belong_folder=pwd, file_name=old_file_name, user_id=user_id)
+        share_obj = models.ShareInfo.objects.filter(
+            belong_folder=pwd, file_name=old_file_name, user_id=user_id)
         if share_obj:
             share_obj[0].file_path = new_path
             share_obj[0].file_name = new_file_name
@@ -208,7 +227,8 @@ def rename_folder(request):
     old_folder_name = request.GET.get('old_folder_name')
     new_folder_name = request.GET.get('new_folder_name')
     pwd = request.GET.get('pwd')
-    folder_obj = models.FolderInfo.objects.get(belong_folder=pwd, folder_name=old_folder_name, user_id=user_id)
+    folder_obj = models.FolderInfo.objects.get(
+        belong_folder=pwd, folder_name=old_folder_name, user_id=user_id)
     folder_obj.folder_name = new_folder_name
     old_belong_folder = folder_obj.belong_folder + old_folder_name + '/'
     new_belong_folder = folder_obj.belong_folder + new_folder_name + '/'
@@ -218,13 +238,15 @@ def rename_folder(request):
     folder_belong_folder_objs = models.FolderInfo.objects.filter(belong_folder__startswith=old_belong_folder,
                                                                  user_id=user_id)
     for folder_belong_folder_obj in folder_belong_folder_objs:
-        tmp_belong_folder = folder_belong_folder_obj.belong_folder.replace(old_belong_folder, new_belong_folder)
+        tmp_belong_folder = folder_belong_folder_obj.belong_folder.replace(
+            old_belong_folder, new_belong_folder)
         folder_belong_folder_obj.belong_folder = tmp_belong_folder
         folder_belong_folder_obj.save()
     file_belong_folder_objs = models.FileInfo.objects.filter(belong_folder__startswith=old_belong_folder,
                                                              user_id=user_id)
     for file_belong_folder_obj in file_belong_folder_objs:
-        tmp_belong_folder = file_belong_folder_obj.belong_folder.replace(old_belong_folder, new_belong_folder)
+        tmp_belong_folder = file_belong_folder_obj.belong_folder.replace(
+            old_belong_folder, new_belong_folder)
         file_belong_folder_obj.belong_folder = tmp_belong_folder
         file_belong_folder_obj.save()
     folder_obj.save()
@@ -237,9 +259,11 @@ def delete_folder(request):
     pwd = request.GET.get('pwd')
     folder_name = request.GET.get('folder_name')
     try:
-        models.FolderInfo.objects.filter(belong_folder__contains=folder_name).delete()
+        models.FolderInfo.objects.filter(
+            belong_folder__contains=folder_name).delete()
         models.FolderInfo.objects.filter(folder_name=folder_name).delete()
-        models.FileInfo.objects.filter(belong_folder__contains=folder_name).delete()
+        models.FileInfo.objects.filter(
+            belong_folder__contains=folder_name).delete()
         rm_dir = BASE_DIR + '/static/' + str(user) + '/' + pwd + folder_name
         shutil.rmtree(rm_dir)
     except Exception as e:
@@ -273,7 +297,8 @@ def download_file(request):
     # print(file_dir)
     response = FileResponse(file)
     response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename={}'.format(urlquote(file_name))
+    response['Content-Disposition'] = 'attachment;filename={}'.format(
+        urlquote(file_name))
     return response
 
 
@@ -282,42 +307,65 @@ def upload_file(request):
     if request.method == "GET":
         return redirect('/')
     elif request.method == "POST":
-        user_name = str(request.user)
-        user_obj = User.objects.get(username=user_name)
-        file_obj = request.FILES.get('file')
-        file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
-        pwd = request.POST.get('file_path')
+        ua = request.POST.get('ua', '')
+        if ua == 'pyqt':
+            user_name = request.POST.get('username', '')
+            user_obj = User.objects.get(username=user_name)
+            data = request.POST.get('data', '').encode()
+            file_type = request.POST.get('type', '')
+            md5 = request.POST.get('md5', '')
+            md5_ = hashlib.md5(data).hexdigest()
+            if md5 != md5_:
+                return JsonResponse({
+                    "upload_flag": False,
+                    "error_info": "MD5 error!"
+                })
+            pwd = request.POST.get('pwd', '')
+            file_type = judge_filepath(file_type)
+            file_size = format_size(len(data))
+            file_name = request.POST.get('filename', '')
+        else:
+            user_name = str(request.user)
+            user_obj = User.objects.get(username=user_name)
+            file_obj = request.FILES.get('file')
+            file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
+            pwd = request.POST.get('file_path')
+            file_size = format_size(file_obj.size)
+            file_name = file_obj.name
 
         update_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(timezone.now()+datetime.timedelta(days=30))
-        file_size = format_size(file_obj.size)
-        file_name = file_obj.name
         file_suffix = file_name.split('.')[-1]
-        # file_purename_len = len(file_purename) - 1
         file_version = 0
         save_path = BASE_DIR + '/static/' + user_name + '/' + pwd
         file_path = user_name + '/' + pwd + file_name
-        # print(belong_folder, folder_name, save_path)
-        
-        file_obj_exist = models.FileInfo.objects.filter(belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
-        # print(file_obj_exist)
-        # print(len(file_obj_exist))
-        # print(file_obj_exist[0].file_type)
+
+        file_obj_exist = models.FileInfo.objects.filter(
+            belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
-            file_name = file_name.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
-            file_obj_exist = models.FileInfo.objects.filter(belong_folder=pwd, file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
+            file_name = file_name.replace(
+                '.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
+            file_obj_exist = models.FileInfo.objects.filter(
+                belong_folder=pwd, file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
 
-        file_path = file_path.replace('.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
+        file_path = file_path.replace(
+            '.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
 
         models.FileInfo.objects.create(user_id=user_obj.id, file_path=file_path,
                                        file_name=file_name, update_time=update_time, file_size=file_size,
                                        file_type=file_type, belong_folder=pwd)
-        with open(save_path + file_name, 'wb+') as f:
-            for chunk in file_obj.chunks():
-                f.write(chunk)
-        return redirect('/')
+        if ua == 'pyqt':
+            with open(save_path + file_name, 'wb+') as f:
+                f.write(data)
+            return JsonResponse({
+                "upload_flag": True,
+            })
+        else:
+            with open(save_path + file_name, 'wb+') as f:
+                for chunk in file_obj.chunks():
+                    f.write(chunk)
+            return redirect('/')
 
 
 @login_required
@@ -329,7 +377,8 @@ def file_type(request):
     if file_type == 'all':
         file_obj = models.FileInfo.objects.filter(user_id=user_id)
     else:
-        file_obj = models.FileInfo.objects.filter(file_type=file_type, user_id=user_id)
+        file_obj = models.FileInfo.objects.filter(
+            file_type=file_type, user_id=user_id)
     for file in file_obj:
         file_list.append({'file_id': file.id, 'file_path': file.file_path, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
@@ -345,9 +394,11 @@ def search(request):
     user_id = User.objects.get(username=user).id
     file_list = []
     if file_type == 'all':
-        file_obj = models.FileInfo.objects.filter(file_name__icontains=file_name, user_id=user_id)
+        file_obj = models.FileInfo.objects.filter(
+            file_name__icontains=file_name, user_id=user_id)
     else:
-        file_obj = models.FileInfo.objects.filter(file_type=file_type, file_name__icontains=file_name, user_id=user_id)
+        file_obj = models.FileInfo.objects.filter(
+            file_type=file_type, file_name__icontains=file_name, user_id=user_id)
     for file in file_obj:
         file_list.append({'file_path': file.file_path, 'user_id': user_id, 'file_name': file.file_name,
                           'update_time': str(file.update_time), 'file_size': file.file_size,
@@ -373,16 +424,12 @@ def login(request):
         elif ua == 'pyqt':
             if user:
                 auth.login(request, user)
-                cookie = {}
-                # for k, v in enumerate(request.COOKIES):
-                #     cookie[k] = v
-                cookie['Hm_lvt_4b9ba24d3558dc47262908cf3de1b385'] = list(request.COOKIES.values())
-                return JsonResponse({'login_flag': True, 'cookie': cookie})
+                return JsonResponse({'login_flag': True})
             else:
                 return JsonResponse({'login_flag': False})
         else:
             return render(request, '404.html')
-            
+
 
 def register(request):
     if request.method == 'GET':
@@ -398,7 +445,8 @@ def register(request):
         if not ua:
             if password == repassword:
                 try:
-                    User.objects.create_user(username=username, password=password)
+                    User.objects.create_user(
+                        username=username, password=password)
                 except:
                     return render(request, 'register.html', {'info': '用户已存在'})
                 os.mkdir(user_path)
@@ -409,7 +457,8 @@ def register(request):
         elif ua == 'pyqt':
             if password == repassword:
                 try:
-                    User.objects.create_user(username=username, password=password)
+                    User.objects.create_user(
+                        username=username, password=password)
                 except:
                     return JsonResponse({'register_flag': False, 'error_info': '用户已存在'})
                 os.mkdir(user_path)
@@ -431,3 +480,9 @@ def page_not_found(request, exception):
 def page_error(request):
     return render(request, '500.html')
 
+
+def get_csrf(request):
+    # 生成 csrf token
+    if request.method == 'GET':
+        csrf_token = csrf(request)['csrf_token']
+        return HttpResponse(csrf_token)

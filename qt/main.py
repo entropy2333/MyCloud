@@ -1,20 +1,20 @@
+from utils.FramelessDialog import *
+from utils.VerificationCode import WidgetCode
+from UI.Ui_transfer import Ui_TransferWindow
+from UI.Ui_register import Ui_RegisterWindow
+from UI.Ui_login import Ui_LoginWindow
+from UI.Ui_main_window import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from client import *
+
 import sys
 import os
 import qtawesome
 root_path = os.getcwd()
 sys.path.append(f'{root_path}\\qt')
-from client import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-from UI.Ui_main_window import Ui_MainWindow
-from UI.Ui_login import Ui_LoginWindow
-from UI.Ui_register import Ui_RegisterWindow
-from UI.Ui_transfer import Ui_TransferWindow
-from utils.VerificationCode import WidgetCode
-from utils.FramelessDialog import *
 
 
 ABSOLUTE_PATH = '\\'.join(os.path.abspath(__file__).split('\\')[:-1])
@@ -73,7 +73,7 @@ class BasicWindow(QMainWindow):
         self.m_flag = False  # 判断是否按下鼠标
         self.setFixedSize(self.width(), self.height())  # 设置窗口大小不能调整
         # self.setWindowOpacity(0.9) # 设置窗口透明度
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground) # 设置窗口背景透明
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)  # 设置窗口背景透明
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 去掉窗口标题栏
         self.animation = QPropertyAnimation(self, b'windowOpacity')  # 窗口透明度动画类
         self.animation.setDuration(500)  # 持续时间0.5秒
@@ -110,10 +110,10 @@ class BasicWindow(QMainWindow):
         """
         if event.button() == QtCore.Qt.LeftButton:
             self.m_flag = True
-            self.m_Position = event.globalPos()-self.pos() #获取鼠标相对窗口的位置
+            self.m_Position = event.globalPos()-self.pos()  # 获取鼠标相对窗口的位置
             event.accept()
             self.setCursor(QCursor(QtCore.Qt.OpenHandCursor))
-      
+
     def mouseReleaseEvent(self, event):
         """鼠标左键放开变回箭头
 
@@ -131,7 +131,7 @@ class BasicWindow(QMainWindow):
             event -- 事件
         """
         if QtCore.Qt.LeftButton and self.m_flag:
-            self.move(event.globalPos() - self.m_Position) #更改窗口位置
+            self.move(event.globalPos() - self.m_Position)  # 更改窗口位置
             event.accept()
 
 
@@ -143,30 +143,41 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
-        self.left_column = {'allfile_btn':0, 'doc_btn':1, 'img_btn':2, 'music_btn':3, 'video_btn':4, 'other_btn':5}  # 左边栏
-        self.is_file_exist = {'allfile_btn':False, 'doc_btn':False, 'img_btn':False, 'music_btn':False, 'video_btn':False, 'other_btn':False}  # 判断各类型文件是否存在
-        self.logo.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/logo.png').scaled(self.logo.width(), self.logo.height()))  # 添加logo
-        self.label_3.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
-        self.label_4.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/exclamation.png').scaled(self.label_4.width(), self.label_4.height()))
+        self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
+                            'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
+        self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
+                              'music_btn': False, 'video_btn': False, 'other_btn': False}  # 判断各类型文件是否存在
+        self.logo.setPixmap(QPixmap(
+            f'{ABSOLUTE_PATH}/img/logo.png').scaled(self.logo.width(), self.logo.height()))  # 添加logo
+        self.label_3.setPixmap(QPixmap(
+            f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
+        self.label_4.setPixmap(QPixmap(
+            f'{ABSOLUTE_PATH}/img/exclamation.png').scaled(self.label_4.width(), self.label_4.height()))
         self.init_menu()    # 添加用户菜单
         self.doShow()   # 淡入
         self.init_ui()  # 初始化界面
-
+        # index(self.username)
         # widget美化
-        Qss =  'QWidget#widget{background-color:%s;}' % TITLE_COLOR
+        Qss = 'QWidget#widget{background-color:%s;}' % TITLE_COLOR
         Qss += 'QWidget#widget_2{background-color:%s;}' % GRAY_COLOR
         Qss += 'QWidget#widget_3{background-color:%s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_4{background-color:%s;}' % FUNC_COLOR
         Qss += 'QPushButton#user_btn{background-color:%s; border:none; border-radius:10px;}' % TITLE_COLOR
-        Qss += '#upload_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (FUNC_COLOR, HOVER_COLOR)
-        Qss += '#mkdir_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (FUNC_COLOR, HOVER_COLOR)
-        Qss += '#transfer_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (FUNC_COLOR, HOVER_COLOR)
+        Qss += '#upload_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (
+            FUNC_COLOR, HOVER_COLOR)
+        Qss += '#mkdir_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (
+            FUNC_COLOR, HOVER_COLOR)
+        Qss += '#transfer_btn:hover{background-color:%s; border-radius:10px; border:1px solid %s;}' % (
+            FUNC_COLOR, HOVER_COLOR)
         for btn in self.left_column:
-            Qss += '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR)
-            Qss += '#%s:hover{background-color:%s; border-radius:0;}' % (btn, LIGHT_FUNC_COLOR)
-            eval(f'self.{btn}').setCursor(QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
+            Qss += '#%s{background-color:%s; border-radius:0;}' % (
+                btn, GRAY_COLOR)
+            Qss += '#%s:hover{background-color:%s; border-radius:0;}' % (
+                btn, LIGHT_FUNC_COLOR)
+            eval(f'self.{btn}').setCursor(
+                QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
         Qss += GLOBAL_BUTTON
-        self.setStyleSheet(Qss) # 边框部分qss重载
+        self.setStyleSheet(Qss)  # 边框部分qss重载
 
         # 所有按钮的初始化
         self.minButton.clicked.connect(self.showMinimized)
@@ -181,6 +192,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.upload_btn.setGeometry(QtCore.QRect(190, 8, 91, 37))
         self.upload_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.upload_btn.clicked.connect(self.btn_upload)
+        self.uploadselect = QtWidgets.QFileDialog()         # 上传文件选择界面
+        self.uploadselect.setGeometry(QtCore.QRect(248, 341, 500, 62))
         self.mkdir_btn.setIcon(qtawesome.icon('fa.plus-square'))  # 新建文件夹按钮
         self.mkdir_btn.setGeometry(QtCore.QRect(290, 8, 141, 37))
         self.mkdir_btn.setCursor(QCursor(Qt.PointingHandCursor))
@@ -201,21 +214,27 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.search_btn.setIcon(qtawesome.icon('fa.search'))  # 搜索按钮
         self.search_btn.setToolTip('搜索')
         self.search_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.search_btn.clicked.connect(self.btn_search) 
+        self.search_btn.clicked.connect(self.btn_search)
         self.transfer_btn.setIcon(qtawesome.icon('fa.exchange'))  # 传输列表按钮
         self.transfer_btn.setGeometry(QtCore.QRect(480, 8, 111, 37))
         self.transfer_btn.clicked.connect(self.btn_transfer)
-        self.allfile_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))  # 全部文件按钮
+        self.allfile_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))  # 全部文件按钮
         self.allfile_btn.clicked.connect(lambda: self.btn_left('allfile_btn'))
-        self.doc_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))  # 文档按钮
+        self.doc_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))  # 文档按钮
         self.doc_btn.clicked.connect(lambda: self.btn_left('doc_btn'))
-        self.music_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))  # 音乐按钮
+        self.music_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))  # 音乐按钮
         self.music_btn.clicked.connect(lambda: self.btn_left('music_btn'))
-        self.video_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))  # 视频按钮
+        self.video_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))  # 视频按钮
         self.video_btn.clicked.connect(lambda: self.btn_left('video_btn'))
-        self.other_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))  # 其他按钮
+        self.other_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))  # 其他按钮
         self.other_btn.clicked.connect(lambda: self.btn_left('other_btn'))
-        self.img_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))  # 图片按钮
+        self.img_btn.setIcon(
+            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))  # 图片按钮
         self.img_btn.clicked.connect(lambda: self.btn_left('img_btn'))
 
     def init_menu(self):
@@ -228,7 +247,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def init_ui(self):
         """初始化界面
         """
-        self.allfile_btn.setStyleSheet('#allfile_btn{background-color:%s; color:%s; border-left:6px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
+        self.allfile_btn.setStyleSheet(
+            '#allfile_btn{background-color:%s; color:%s; border-left:6px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
         if self.is_file_exist['allfile_btn']:
             self.stackedWidget.setCurrentIndex(0)
         else:
@@ -237,14 +257,18 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_left(self, left_btn):
         """左边栏按钮对应事件
         """
-        eval(f'self.{left_btn}').setStyleSheet('#%s{background-color:%s; color:%s; border-left:6px solid %s}' % (left_btn, FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))  # 当前点击按钮高亮
+        index(self.username)
+        eval(f'self.{left_btn}').setStyleSheet('#%s{background-color:%s; color:%s; border-left:6px solid %s}' %
+                                               (left_btn, FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))  # 当前点击按钮高亮
         if self.is_file_exist[f'{left_btn}']:
-            self.stackedWidget.setCurrentIndex(self.left_column[left_btn])  # 切换当前页面
+            self.stackedWidget.setCurrentIndex(
+                self.left_column[left_btn])  # 切换当前页面
         else:
             self.stackedWidget.setCurrentIndex(6)
         for btn in self.left_column:  # 其他按钮全部恢复
             if btn != left_btn:
-                eval(f'self.{btn}').setStyleSheet('#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
+                eval(f'self.{btn}').setStyleSheet(
+                    '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
 
     def btn_transfer(self):
         """传输列表界面
@@ -264,8 +288,20 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_upload(self):
         """文件上传
         """
+        fileinfo = self.uploadselect.getOpenFileName(
+            self, 'OpenFile', "d:/GoogleDownload")
+        print(fileinfo)
+        client.upload(self.user_name, fileinfo[0])
+        # filepath, filetype = os.path.splitext(fileinfo[0])
+        # filename = filepath.split("/")[-1]
+        # if fileinfo[0] != '':
+        #     with open(fileinfo[0], mode='rb') as f:
+        #         r = f.read()
+        #         f.close()
+        #     file_r = base64.encodebytes(r).decode("utf-8")
+        #     client.send_Msg(file_r, self.destsend, filetype, filename)
         print('文件上传')
-    
+
     def btn_mkdir(self):
         """新建文件夹
         """
@@ -305,7 +341,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.doClose()
 
 
-
 # 登陆窗口
 class Login_window(BasicWindow, Ui_LoginWindow):
     def __init__(self, parent=None):
@@ -320,7 +355,7 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         self.lineEdit_2.setEchoMode(QLineEdit.Password)  # 密码输入不可见
 
         # widget美化
-        Qss =  'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
+        Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_2{background-color: %s;}' % TITLE_COLOR
         # 注册按钮
         Qss += 'QPushButton#pushButton_2{background-color: %s;border-radius:5px;}' % TITLE_COLOR
@@ -331,13 +366,14 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         Qss += 'QPushButton#pushButton:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += GLOBAL_BUTTON
-        self.setStyleSheet(Qss) # 边框部分qss重载
+        self.setStyleSheet(Qss)  # 边框部分qss重载
 
         self.pushButton.clicked.connect(self.btn_login)
         self.pushButton_2.clicked.connect(self.btn_register)
         self.pushButton_3.clicked.connect(self.showMinimized)
         self.pushButton_4.clicked.connect(self.doClose)
-        self.code = WidgetCode(self.widget_3, minimumHeight=35, minimumWidth=80)  # 添加验证码
+        self.code = WidgetCode(
+            self.widget_3, minimumHeight=35, minimumWidth=80)  # 添加验证码
         self.doShow()
 
     # 登陆按钮事件
@@ -348,7 +384,7 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         password = self.lineEdit_2.text()  # 获取用户输入的密码
         code_check = self.code.check(self.lineEdit_3.text())  # 验证码验证
         if code_check:
-            if user_login(user_name, password):
+            if client.user_login(user_name, password):
                 self.main_window = Main_window(user_name)
                 self.main_window.show()
                 self.close()
@@ -405,7 +441,6 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         animation.start(animation.DeleteWhenStopped)
 
 
-
 # 注册窗口
 class Register_window(BasicWindow, Ui_RegisterWindow):
     def __init__(self, parent=None):
@@ -416,14 +451,14 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
         self.lineEdit_2.setEchoMode(QLineEdit.PasswordEchoOnEdit)
         self.lineEdit_3.setEchoMode(QLineEdit.PasswordEchoOnEdit)
         # widget美化
-        Qss =  'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
+        Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
         # 注册按钮
         Qss += 'QPushButton#pushButton_2{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton_2:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton_2:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
         Qss += GLOBAL_BUTTON
-        self.setStyleSheet(Qss) # 边框部分qss重载
+        self.setStyleSheet(Qss)  # 边框部分qss重载
 
         self.pushButton_2.clicked.connect(self.btn_register)
         self.pushButton_3.clicked.connect(self.showMinimized)
@@ -441,47 +476,57 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
         self.close()
 
 
-
 # 传输列表界面
 class Transfer_window(BasicWindow, Ui_TransferWindow):
     signal = QtCore.pyqtSignal(bool)  # 传递是否有窗口打开的布尔值
+
     def __init__(self, parent=None):
         super(Transfer_window, self).__init__(parent)
         self.setupUi(self)
         self.is_download = False  # 是否正在下载
         self.is_upload = False  # 是否正在上传
         self.is_complete = False  # 是否有传输完成的任务
-        self.top_column = {'upload':1, 'download':0, 'complete':2}  # 顶部栏
+        self.top_column = {'upload': 1, 'download': 0, 'complete': 2}  # 顶部栏
         self.init_ui()  # 界面初始化
 
         Qss = GLOBAL_BUTTON
         Qss += 'QWidget#widget{background-color:%s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_2{background-color:%s;}' % TITLE_COLOR
         for btn in self.top_column:
-            Qss += '#%s_btn{background-color:%s; border-radius:0;}' % (btn, TITLE_COLOR)
-            Qss += '#%s_btn:hover{background-color:%s; border-radius:0;}' % (btn, LIGHT_FUNC_COLOR)
-            eval(f'self.{btn}_btn').setCursor(QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
-        self.setStyleSheet(Qss) # 边框部分qss重载
+            Qss += '#%s_btn{background-color:%s; border-radius:0;}' % (
+                btn, TITLE_COLOR)
+            Qss += '#%s_btn:hover{background-color:%s; border-radius:0;}' % (
+                btn, LIGHT_FUNC_COLOR)
+            eval(f'self.{btn}_btn').setCursor(
+                QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
+        self.setStyleSheet(Qss)  # 边框部分qss重载
 
         # 静态页面设置
-        self.label.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/download.png').scaled(self.label.width(), self.label.height()))  # 添加logo
-        self.label_4.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/upload.png').scaled(self.label_4.width(), self.label_4.height()))
-        self.label_3.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
+        self.label.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/download.png').scaled(
+            self.label.width(), self.label.height()))  # 添加logo
+        self.label_4.setPixmap(QPixmap(
+            f'{ABSOLUTE_PATH}/img/upload.png').scaled(self.label_4.width(), self.label_4.height()))
+        self.label_3.setPixmap(QPixmap(
+            f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
 
         # 按钮功能实现
         self.closeButton.clicked.connect(self.signalClose)
         self.minButton.clicked.connect(self.showMinimized)
-        self.upload_btn.clicked.connect(lambda: self.btn_top('upload'))  # 上传列表按钮
+        self.upload_btn.clicked.connect(
+            lambda: self.btn_top('upload'))  # 上传列表按钮
         self.upload_btn.setIcon(qtawesome.icon('fa.upload'))
-        self.download_btn.clicked.connect(lambda: self.btn_top('download'))  # 下载列表按钮
+        self.download_btn.clicked.connect(
+            lambda: self.btn_top('download'))  # 下载列表按钮
         self.download_btn.setIcon(qtawesome.icon('fa.download'))
-        self.complete_btn.clicked.connect(lambda: self.btn_top('complete'))  # 传输完成按钮
+        self.complete_btn.clicked.connect(
+            lambda: self.btn_top('complete'))  # 传输完成按钮
         self.complete_btn.setIcon(qtawesome.icon('fa.check-square-o'))
 
     def init_ui(self):
         """界面初始化
         """
-        self.download_btn.setStyleSheet('#download_btn{background-color:%s; color:%s; border-bottom:5px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
+        self.download_btn.setStyleSheet(
+            '#download_btn{background-color:%s; color:%s; border-bottom:5px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
         if self.is_download:
             self.stackedWidget.setCurrentIndex(0)
         else:
@@ -491,14 +536,16 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
         """顶部栏栏按钮对应事件
         """
         top_btn = btn_name + '_btn'
-        eval(f'self.{top_btn}').setStyleSheet('#%s{background-color:%s; color:%s; border-bottom:5px solid %s}' % (top_btn, FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))  # 当前点击按钮高亮
+        eval(f'self.{top_btn}').setStyleSheet('#%s{background-color:%s; color:%s; border-bottom:5px solid %s}' %
+                                              (top_btn, FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))  # 当前点击按钮高亮
         if eval(f'self.is_{btn_name}'):
             self.stackedWidget.setCurrentIndex(self.top_column[btn_name])
         else:
             self.stackedWidget.setCurrentIndex(self.top_column[btn_name]+3)
         for btn in self.top_column:  # 其他按钮全部恢复
             if btn != btn_name:
-                eval(f'self.{btn}_btn').setStyleSheet('#%s{background-color:%s; border-radius:0;}' % (f'{btn}_btn', TITLE_COLOR))    
+                eval(f'self.{btn}_btn').setStyleSheet(
+                    '#%s{background-color:%s; border-radius:0;}' % (f'{btn}_btn', TITLE_COLOR))
 
     def signalClose(self):
         """淡出关闭窗口并向父窗口发送已关闭的信息
@@ -507,10 +554,9 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
         self.doClose()
 
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
+    client = Client()
     login_window = Login_window()
     login_window.show()
 

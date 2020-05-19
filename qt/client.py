@@ -6,19 +6,22 @@ from django.template.context_processors import csrf
 
 SERVER_URL = 'http://127.0.0.1:9999'
 
-    
+
 def user_login(username, password):
     data = {
         'username': username,
         'password': password,
         'ua': 'pyqt'
     }
+
     r = requests.post(f'{SERVER_URL}/login/?next=/', data)
     r = r.json()
+
     if r['login_flag']:
         return True
     else:
         return False
+
 
 def user_register(username, password, repassowrd):
     data = {
@@ -33,7 +36,21 @@ def user_register(username, password, repassowrd):
         return True
     else:
         return r['error_info']
-    
+
+
+def index(username):
+    data = {
+        'username': username,
+        'ua': 'pyqt'
+    }
+
+    r = requests.post(
+        f'{SERVER_URL}/download_file/?file_path=ddd/11111.png/')
+    print(r)
+
+    # r = r.json()
+    # print(r)
+
 
 if __name__ == "__main__":
     print(user_login('mkf', '123'))

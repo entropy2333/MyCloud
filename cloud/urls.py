@@ -35,7 +35,6 @@ urlpatterns = [
     path('rename_folder/', views.rename_folder),
     path('share_file/', views.share_file),
     path('download_share_file', views.download_share_file),
-    path('get_csrf', views.get_csrf),
 
     # path('download_share_file/user_name=<path:user_name>#file_name=<path:file_name>', views.download_share_file),
 

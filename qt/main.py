@@ -136,10 +136,10 @@ class BasicWindow(QMainWindow):
 
 # 主窗口
 class Main_window(BasicWindow, Ui_MainWindow):
-    def __init__(self, parent=None, username=''):
+    def __init__(self, user_name, parent=None):
         super(Main_window, self).__init__(parent)
         self.setupUi(self)
-        self.username = username
+        self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
@@ -183,7 +183,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.closeButton.clicked.connect(self.doClose)
         self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
-        self.user_btn.setText(self.username)   # 用户名按钮
+        self.user_btn.setText(f'{self.user_name}')   # 用户名按钮
         self.user_btn.setGeometry(QtCore.QRect(970, 10, 100, 31))
         self.user_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/user.png'))
         self.user_btn.setCursor(QCursor(Qt.PointingHandCursor))
@@ -290,6 +290,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "d:/GoogleDownload")
         print(fileinfo)
+        upload(fileinfo[[0]])
         # filepath, filetype = os.path.splitext(fileinfo[0])
         # filename = filepath.split("/")[-1]
         # if fileinfo[0] != '':
@@ -383,7 +384,7 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         code_check = self.code.check(self.lineEdit_3.text())  # 验证码验证
         if code_check:
             if user_login(user_name, password):
-                self.main_window = Main_window(username=user_name)
+                self.main_window = Main_window(user_name)
                 self.main_window.show()
                 self.close()
             else:

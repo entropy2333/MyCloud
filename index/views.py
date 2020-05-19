@@ -381,7 +381,6 @@ def login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         ua = request.POST.get('ua', '')
-        print(request.COOKIES)
         user = auth.authenticate(username=username, password=password)
         if not ua:
             if user:

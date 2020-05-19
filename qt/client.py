@@ -1,58 +1,57 @@
 import json
-
 import requests
-from django.template.context_processors import csrf
 
 
-SERVER_URL = 'http://127.0.0.1:9999'
+class Client(requests.Session):
 
+    def __init__(self):
+        super().__init__()
+        self.SERVER_URL = 'http://127.0.0.1:9999'
+        self.UA = 'pyqt'
 
-def user_login(username, password):
-    data = {
-        'username': username,
-        'password': password,
-        'ua': 'pyqt'
-    }
+    def user_login(self, username, password):
+        data = {
+            'username': username,
+            'password': password,
+            'ua': self.UA
+        }
+        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = response.json()
+        if response['login_flag']:
+            return True
+        else:
+            return False
 
-    r = requests.post(f'{SERVER_URL}/login/?next=/', data)
-    r = r.json()
+    def user_register(self, username, password, repassowrd):
+        data = {
+            'username': username,
+            'password': password,
+            'repassword': repassowrd,
+            'ua': self.UA
+        }
+        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = response.json()
+        if response['register_flag']:
+            return True
+        else:
+            return r['error_info']
 
-    if r['login_flag']:
-        return True
-    else:
-        return False
+    def fetch_all_file(self):
+        r = self.get(f'{SERVER_URL}/')
+        # r = r.json()
+        # r = requests.get(f'{SERVER_URL}/', headers=header)
+        return r
 
-
-def user_register(username, password, repassowrd):
-    data = {
-        'username': username,
-        'password': password,
-        'repassword': repassowrd,
-        'ua': 'pyqt'
-    }
-    r = requests.post(f'{SERVER_URL}/register/')
-    r = r.json()
-    if r['register_flag']:
-        return True
-    else:
-        return r['error_info']
-
-
-def index(username):
-    data = {
-        'username': username,
-        'ua': 'pyqt'
-    }
-
-    r = requests.post(
-        f'{SERVER_URL}/download_file/?file_path=ddd/11111.png/')
-    print(r)
-
-    # r = r.json()
-    # print(r)
+    def upload(self, file):
+        with open(file, 'rb') as f:
+            data = f.read()
+        with open('d.txt', 'wb') as f:
+            f.write(data)
 
 
 if __name__ == "__main__":
-    print(user_login('mkf', '123'))
-    print(user_login('mkf', '1234'))
-    print('123')
+    client = Client()
+    # print(user_login('mkf', '123'))
+    # print(user_login('mkf', '1234'))
+    # r = fetch_all_file()
+    # print('123')

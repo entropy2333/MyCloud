@@ -2,6 +2,7 @@ import base64
 import datetime
 import os
 import shutil
+import hashlib
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
@@ -21,32 +22,45 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @login_required
 def index(request):
-    if request.method == 'GET':
-        user = request.user
-    if request.method == 'POST':
-        user = request.POST.get('username', '')
-        print(user)
+    user = request.user
+    ua = request.GET.get('ua', '')
     user_id = User.objects.get(username=user).id
     file_obj = models.FileInfo.objects.filter(
         user_id=user_id, belong_folder='')
     folder_obj = models.FolderInfo.objects.filter(
         user_id=user_id, belong_folder='')
-    index_list = []
-    for file in file_obj:
-        file.is_file = True
-        index_list.append(file)
-    for folder in folder_obj:
-        folder.is_file = False
-        index_list.append(folder)
-    breadcrumb_list = [{'tag': '全部文件', 'uri': ''}]
-    if request.method == 'GET':
+    if not ua:
+        index_list = []
+        for file in file_obj:
+            file.is_file = True
+            index_list.append(file)
+        for folder in folder_obj:
+            folder.is_file = False
+            index_list.append(folder)
+        breadcrumb_list = [{'tag': '全部文件', 'uri': ''}]
         return render(request, 'index.html',
                       {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
-    if request.method == 'POST':
-        ua = request.POST.get('ua', '')
-        print(ua)
-        if ua == 'pyqt':
-            return JsonResponse({'index_list': index_list})
+    elif ua == 'pyqt':
+        file_list = []
+        folder_list = []
+        for f in file_obj:
+            file_list.append({
+                'file_name': f.file_name,
+                'file_path': f.file_path,
+                'file_type': f.file_type,
+                'file_size': f.file_size,
+                'update_time': f.update_time,
+                'belong_folder': f.belong_folder
+            })
+        for f in folder_obj:
+            folder_list.append({
+                'folder_name': f.folder_name,
+                'update_time': f.update_time,
+                'belong_folder': f.belong_folder
+            })
+        return JsonResponse({'file_list': file_list, 'folder_list': folder_list})
+    else:
+        return render(request, '404.html')
 
 
 @login_required
@@ -293,28 +307,40 @@ def upload_file(request):
     if request.method == "GET":
         return redirect('/')
     elif request.method == "POST":
-        user_name = str(request.user)
-        user_obj = User.objects.get(username=user_name)
-        file_obj = request.FILES.get('file')
-        file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
-        pwd = request.POST.get('file_path')
+        ua = request.POST.get('ua', '')
+        if ua == 'pyqt':
+            user_name = request.POST.get('username', '')
+            user_obj = User.objects.get(username=user_name)
+            data = request.POST.get('data', '').encode()
+            file_type = request.POST.get('type', '')
+            md5 = request.POST.get('md5', '')
+            md5_ = hashlib.md5(data).hexdigest()
+            if md5 != md5_:
+                return JsonResponse({
+                    "upload_flag": False,
+                    "error_info": "MD5 error!"
+                })
+            pwd = request.POST.get('pwd', '')
+            file_type = judge_filepath(file_type)
+            file_size = format_size(len(data))
+            file_name = request.POST.get('filename', '')
+        else:
+            user_name = str(request.user)
+            user_obj = User.objects.get(username=user_name)
+            file_obj = request.FILES.get('file')
+            file_type = judge_filepath(file_obj.name.split('.')[-1].lower())
+            pwd = request.POST.get('file_path')
+            file_size = format_size(file_obj.size)
+            file_name = file_obj.name
 
         update_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
-        # print(timezone.now()+datetime.timedelta(days=30))
-        file_size = format_size(file_obj.size)
-        file_name = file_obj.name
         file_suffix = file_name.split('.')[-1]
-        # file_purename_len = len(file_purename) - 1
         file_version = 0
         save_path = BASE_DIR + '/static/' + user_name + '/' + pwd
         file_path = user_name + '/' + pwd + file_name
-        # print(belong_folder, folder_name, save_path)
 
         file_obj_exist = models.FileInfo.objects.filter(
             belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
-        # print(file_obj_exist)
-        # print(len(file_obj_exist))
-        # print(file_obj_exist[0].file_type)
         while (file_obj_exist):
             file_version += 1
             # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
@@ -329,10 +355,17 @@ def upload_file(request):
         models.FileInfo.objects.create(user_id=user_obj.id, file_path=file_path,
                                        file_name=file_name, update_time=update_time, file_size=file_size,
                                        file_type=file_type, belong_folder=pwd)
-        with open(save_path + file_name, 'wb+') as f:
-            for chunk in file_obj.chunks():
-                f.write(chunk)
-        return redirect('/')
+        if ua == 'pyqt':
+            with open(save_path + file_name, 'wb+') as f:
+                f.write(data)
+            return JsonResponse({
+                "upload_flag": True,
+            })
+        else:
+            with open(save_path + file_name, 'wb+') as f:
+                for chunk in file_obj.chunks():
+                    f.write(chunk)
+            return redirect('/')
 
 
 @login_required

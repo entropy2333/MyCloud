@@ -9,6 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from client import *
+
 import sys
 import os
 import qtawesome
@@ -290,7 +291,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "d:/GoogleDownload")
         print(fileinfo)
-        upload(fileinfo[[0]])
+        client.upload(self.user_name, fileinfo[0])
         # filepath, filetype = os.path.splitext(fileinfo[0])
         # filename = filepath.split("/")[-1]
         # if fileinfo[0] != '':
@@ -383,7 +384,7 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         password = self.lineEdit_2.text()  # 获取用户输入的密码
         code_check = self.code.check(self.lineEdit_3.text())  # 验证码验证
         if code_check:
-            if user_login(user_name, password):
+            if client.user_login(user_name, password):
                 self.main_window = Main_window(user_name)
                 self.main_window.show()
                 self.close()
@@ -555,7 +556,7 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
+    client = Client()
     login_window = Login_window()
     login_window.show()
 

@@ -141,7 +141,7 @@ $(document).ready(function () {
 
     //var formData = new FormData($('form')[0]);
     var name = $("input").val();
-    alert($("#file")[0].files[0]);
+
     formData.append("file", $("#file")[0].files[0]);
 
     formData.append("name", name);

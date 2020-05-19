@@ -1,5 +1,6 @@
 import json
 import requests
+import hashlib
 
 
 class Client(requests.Session):
@@ -15,7 +16,7 @@ class Client(requests.Session):
             'password': password,
             'ua': self.UA
         }
-        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
         response = response.json()
         if response['login_flag']:
             return True
@@ -29,7 +30,7 @@ class Client(requests.Session):
             'repassword': repassowrd,
             'ua': self.UA
         }
-        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
         response = response.json()
         if response['register_flag']:
             return True
@@ -37,21 +38,37 @@ class Client(requests.Session):
             return r['error_info']
 
     def fetch_all_file(self):
-        r = self.get(f'{SERVER_URL}/')
-        # r = r.json()
-        # r = requests.get(f'{SERVER_URL}/', headers=header)
-        return r
+        params = {
+            'ua': self.UA
+        }
+        response = self.get(f'{self.SERVER_URL}/', params=params)
+        response = response.json()
+        return response
 
-    def upload(self, file):
-        with open(file, 'rb') as f:
-            data = f.read()
-        with open('d.txt', 'wb') as f:
-            f.write(data)
+    def upload(self, username, filepath, pwd=''):
+        with open(filepath, 'rb') as f:
+            file = f.read()
+        md5 = hashlib.md5(file).hexdigest()
+        filename = filepath.split('/')[-1]
+        filetype = filepath.split('.')[-1].lower()
+        data = {
+            "ua": self.UA,
+            "username": username,
+            "filename": filename,
+            "data": file,
+            "type": filetype,
+            "md5": md5,
+            "pwd": ''
+        }
+        response = self.post(f'{self.SERVER_URL}/upload_file/', data)
+        response = response.json()
+        if response['upload_flag']:
+            return True
+        else:
+            return response['error_info']
 
 
 if __name__ == "__main__":
     client = Client()
-    # print(user_login('mkf', '123'))
-    # print(user_login('mkf', '1234'))
-    # r = fetch_all_file()
-    # print('123')
+    print(client.user_login('mkf', '123'))
+    print(client.fetch_all_file())

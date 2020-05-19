@@ -3,6 +3,7 @@ import os
 import qtawesome
 root_path = os.getcwd()
 sys.path.append(f'{root_path}\\qt')
+from client import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -345,10 +346,16 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         user_name = self.lineEdit.text()  # 获取用户输入的用户名
         password = self.lineEdit_2.text()  # 获取用户输入的密码
         code_check = self.code.check(self.lineEdit_3.text())  # 验证码验证
-        if not code_check:
-            self.main_window = Main_window()
-            self.main_window.show()
-            self.close()
+        if code_check:
+            if user_login(user_name, password):
+                self.main_window = Main_window()
+                self.main_window.show()
+                self.close()
+            else:
+                self.doShakeWindow(self)
+                self.warn_dialog = Warn_Dialog()
+                self.warn_dialog.label.setText('用户名或密码错误！')
+                self.warn_dialog.show()
         else:
             self.doShakeWindow(self)
             self.warn_dialog = Warn_Dialog()

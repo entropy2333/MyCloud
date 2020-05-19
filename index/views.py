@@ -1,16 +1,20 @@
-from django.shortcuts import render, redirect
-from index import models
-from django.http import FileResponse, JsonResponse, HttpResponse
+import base64
+import datetime
 import os
-from index.utils import judge_filepath, format_size, gen_qrcode
-from django.utils import timezone
-from django.utils.http import urlquote
+import shutil
+
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-import shutil
-import datetime
-import base64
+from django.http import FileResponse, HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
+from django.template.context_processors import csrf
+from django.utils import timezone
+from django.utils.http import urlquote
+
+from index import models
+from index.utils import format_size, gen_qrcode, judge_filepath
+
 # Create your views here.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -335,34 +339,57 @@ def login(request):
 
         username = request.POST.get('username')
         password = request.POST.get('password')
+        ua = request.POST.get('ua', '')
         user = auth.authenticate(username=username, password=password)
-        if user:
-            auth.login(request, user)
-            return redirect('/')
+        if not ua:
+            if user:
+                auth.login(request, user)
+                return redirect('/')
+            else:
+                return render(request, 'login.html', {'info': '用户名或密码错误'})
+        elif ua == 'pyqt':
+            if user:
+                auth.login(request, user)
+                return JsonResponse({'login_flag': True})
+            else:
+                return JsonResponse({'login_flag': False})
         else:
-            return render(request, 'login.html', {'info': '用户名或密码错误'})
-
+            return render(request, '404.html')
+            
 
 def register(request):
     if request.method == 'GET':
         return render(request, 'register.html')
     elif request.method == "POST":
         username = request.POST.get('username')
-        while (username[-1] == ' '):
-            username = username[:-1]
+        # 去除空格
+        username = username.rstrip()
         password = request.POST.get('password')
         repassword = request.POST.get('repassword')
+        ua = request.POST.get('ua', '')
         user_path = os.path.join(BASE_DIR, 'static', username)
-        if password == repassword:
-            try:
-                User.objects.create_user(username=username, password=password)
-            except Exception as e:
-                return render(request, 'register.html', {'info': '用户已存在'})
-            os.mkdir(user_path)
-            os.mkdir(os.path.join(user_path, 'qr'))
-        else:
-            return render(request, 'register.html', {'info': '两次密码不一致'})
-        return redirect('/login')
+        if not ua:
+            if password == repassword:
+                try:
+                    User.objects.create_user(username=username, password=password)
+                except:
+                    return render(request, 'register.html', {'info': '用户已存在'})
+                os.mkdir(user_path)
+                os.mkdir(os.path.join(user_path, 'qr'))
+            else:
+                return render(request, 'register.html', {'info': '两次密码不一致'})
+            return redirect('/login')
+        elif ua == 'pyqt':
+            if password == repassword:
+                try:
+                    User.objects.create_user(username=username, password=password)
+                except:
+                    return JsonResponse({'register_flag': False, 'error_info': '用户已存在'})
+                os.mkdir(user_path)
+                os.mkdir(os.path.join(user_path, 'qr'))
+            else:
+                return JsonResponse({'register_flag': False, 'error_info': '两次密码不一致'})
+            return JsonResponse({'register_flag': True})
 
 
 def logout(request):
@@ -376,3 +403,10 @@ def page_not_found(request, exception):
 
 def page_error(request):
     return render(request, '500.html')
+
+
+def get_csrf(request):
+    #生成 csrf token
+    if request.method == 'GET':
+        csrf_token = csrf(request)['csrf_token']
+        return HttpResponse(csrf_token)

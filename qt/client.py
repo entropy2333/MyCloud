@@ -14,7 +14,7 @@ class Client(requests.Session):
             'password': password,
             'ua': self.UA
         }
-        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
         response = response.json()
         if response['login_flag']:
             return True
@@ -29,7 +29,7 @@ class Client(requests.Session):
             'repassword': repassowrd,
             'ua': self.UA
         }
-        response = self.post(f'{SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
         response = response.json()
         if response['register_flag']:
             return True
@@ -38,14 +38,14 @@ class Client(requests.Session):
         
 
     def fetch_all_file(self):
-        r = self.get(f'{SERVER_URL}/')
-        # r = r.json()
-        # r = requests.get(f'{SERVER_URL}/', headers=header)
-        return r
+        params = {
+            'ua': self.UA
+        }
+        response = self.get(f'{self.SERVER_URL}/', params=params)
+        response = response.json()
+        return response
 
 if __name__ == "__main__":
     client = Client()
-    # print(user_login('mkf', '123'))
-    # print(user_login('mkf', '1234'))
-    # r = fetch_all_file()
-    # print('123')
+    print(client.user_login('mkf', '123'))
+    print(client.fetch_all_file())

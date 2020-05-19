@@ -22,19 +22,42 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 @login_required
 def index(request):
     user = request.user
+    ua = request.GET.get('ua', '')
     user_id = User.objects.get(username=user).id
     file_obj = models.FileInfo.objects.filter(user_id=user_id, belong_folder='')
     folder_obj = models.FolderInfo.objects.filter(user_id=user_id, belong_folder='')
-    index_list = []
-    for file in file_obj:
-        file.is_file = True
-        index_list.append(file)
-    for folder in folder_obj:
-        folder.is_file = False
-        index_list.append(folder)
-    breadcrumb_list = [{'tag': '全部文件', 'uri': ''}]
-    return render(request, 'index.html',
-                  {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
+    if not ua:
+        index_list = []
+        for file in file_obj:
+            file.is_file = True
+            index_list.append(file)
+        for folder in folder_obj:
+            folder.is_file = False
+            index_list.append(folder)
+        breadcrumb_list = [{'tag': '全部文件', 'uri': ''}]
+        return render(request, 'index.html',
+                    {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
+    elif ua == 'pyqt':
+        file_list = []
+        folder_list = []
+        for f in file_obj:
+            file_list.append({
+                'file_name': f.file_name,
+                'file_path': f.file_path,
+                'file_type': f.file_type,
+                'file_size': f.file_size,
+                'update_time': f.update_time,
+                'belong_folder': f.belong_folder
+            })
+        for f in folder_obj:
+            folder_list.append({
+                'folder_name': f.folder_name,
+                'update_time': f.update_time,
+                'belong_folder': f.belong_folder
+            })
+        return JsonResponse({'file_list': file_list, 'folder_list': folder_list})
+    else:
+        return render(request, '404.html')
 
 
 @login_required

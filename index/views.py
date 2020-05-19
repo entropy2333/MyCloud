@@ -350,7 +350,11 @@ def login(request):
         elif ua == 'pyqt':
             if user:
                 auth.login(request, user)
-                return JsonResponse({'login_flag': True})
+                cookie = {}
+                # for k, v in enumerate(request.COOKIES):
+                #     cookie[k] = v
+                cookie['Hm_lvt_4b9ba24d3558dc47262908cf3de1b385'] = list(request.COOKIES.values())
+                return JsonResponse({'login_flag': True, 'cookie': cookie})
             else:
                 return JsonResponse({'login_flag': False})
         else:
@@ -404,9 +408,3 @@ def page_not_found(request, exception):
 def page_error(request):
     return render(request, '500.html')
 
-
-def get_csrf(request):
-    #生成 csrf token
-    if request.method == 'GET':
-        csrf_token = csrf(request)['csrf_token']
-        return HttpResponse(csrf_token)

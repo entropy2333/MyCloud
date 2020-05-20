@@ -109,7 +109,14 @@ class Client(requests.Session):
                 "error_info": "MD5 error!"
             }
         else:
-            with open(savepath+filename, 'wb+') as f:
+            path = os.path.join(savepath, 'Downloads', filename)
+            version = 0
+            while os.path.exists(path):
+                version += 1
+                p, suffix = path.rsplit('.', 1)
+                path = (p.rsplit(
+                    '(', 1)[0] if version else p) + f'({version}).' + suffix
+            with open(path, 'wb+') as f:
                 for i in data:
                     f.write(i)
                 f.close()
@@ -122,4 +129,3 @@ if __name__ == "__main__":
     # print(client.fetch_all_file())
     # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
     print(client.download('ddd/qt测试.txt'))
-

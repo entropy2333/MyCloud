@@ -72,10 +72,13 @@ QTableWidget{
 """ % (FUNC_COLOR, GRAY_COLOR, HOVER_COLOR, TITLE_COLOR, TITLE_COLOR, BACKGROUND_COLOR,  BACKGROUND_COLOR)
 
 # 文件类型判断
-img_list = ['bmp', 'jpeg', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx', 'svg', 'psd', 'cdr', 'pcd', 'dxf', 'ufo', 'eps', 'ai', 'raw', 'WMF', 'webp']
+img_list = ['bmp', 'jpeg', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx',
+            'svg', 'psd', 'cdr', 'pcd', 'dxf', 'ufo', 'eps', 'ai', 'raw', 'WMF', 'webp']
 doc_list = ['txt', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'pdf']
-music_list = ['mp3', 'cd', 'ogg', 'wma', 'mp3pro', 'ape', 'flac', 'module', 'midi', 'vqf', 'dts', 'm4a', 'aac', 'ac3']
-video_list = ['asf', 'wav', 'rm', 'mp4', 'real', 'avi', 'mkv', 'webm', 'flv', 'mov']
+music_list = ['mp3', 'cd', 'ogg', 'wma', 'mp3pro', 'ape',
+              'flac', 'module', 'midi', 'vqf', 'dts', 'm4a', 'aac', 'ac3']
+video_list = ['asf', 'wav', 'rm', 'mp4',
+              'real', 'avi', 'mkv', 'webm', 'flv', 'mov']
 
 
 # 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口)
@@ -161,7 +164,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
                               'music_btn': False, 'video_btn': False, 'other_btn': False}  # 判断各类型文件是否存在
-        self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square', '下载': 'fa.cloud-download', '分享': 'fa.share-alt-square'}  # 文件操作及对应图标
+        self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square',
+                            '下载': 'fa.cloud-download', '分享': 'fa.share-alt-square'}  # 文件操作及对应图标
         self.logo.setPixmap(QPixmap(
             f'{ABSOLUTE_PATH}/img/logo.png').scaled(self.logo.width(), self.logo.height()))  # 添加logo
         self.label_3.setPixmap(QPixmap(
@@ -273,33 +277,34 @@ class Main_window(BasicWindow, Ui_MainWindow):
         folder_list = self.all_file['folder_list']
         # print(self.all_file)
         # 所有文件页面初始化
-        if file_list or folder_list: self.is_file_exist['allfile_btn'] = True
+        if file_list or folder_list:
+            self.is_file_exist['allfile_btn'] = True
         if self.is_file_exist['allfile_btn']:
             self.stackedWidget.setCurrentIndex(0)
             self.file_table('allfile', self.all_file)
         else:
             self.stackedWidget.setCurrentIndex(6)
         # 各类文件字典生成
-        doc_files = {'file_list':[], 'folder_list':[]}
-        img_files = {'file_list':[], 'folder_list':[]}
-        music_files = {'file_list':[], 'folder_list':[]}
-        video_files = {'file_list':[], 'folder_list':[]}
-        other_files = {'file_list':[], 'folder_list':[]}
+        doc_files = {'file_list': [], 'folder_list': []}
+        img_files = {'file_list': [], 'folder_list': []}
+        music_files = {'file_list': [], 'folder_list': []}
+        video_files = {'file_list': [], 'folder_list': []}
+        other_files = {'file_list': [], 'folder_list': []}
         for i, file_ in enumerate(file_list):
             mime = file_['file_name'].split('.')[-1]
-            if mime in doc_list: 
+            if mime in doc_list:
                 self.is_file_exist['doc_btn'] = True
                 doc_files['file_list'].append(file_)
             elif mime in img_list:
                 self.is_file_exist['img_btn'] = True
                 img_files['file_list'].append(file_)
-            elif mime in music_list: 
+            elif mime in music_list:
                 self.is_file_exist['music_btn'] = True
                 music_files['file_list'].append(file_)
-            elif mime in video_list: 
+            elif mime in video_list:
                 self.is_file_exist['video_btn'] = True
                 video_files['file_list'].append(file_)
-            else: 
+            else:
                 self.is_file_exist['other_btn'] = True
                 other_files['file_list'].append(file_)
         # 各类文件页面初始化
@@ -308,7 +313,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.file_table('music', music_files)
         self.file_table('video', video_files)
         self.file_table('other', other_files)
-        
+
     def file_table(self, file_type, file_dict):
         """文件表初始化
 
@@ -322,7 +327,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
         file_list = file_dict['file_list']
         eval(f'self.{file_type}_table').setColumnCount(7)
         eval(f'self.{file_type}_table').setRowCount(folder_num + file_num)
-        eval(f'self.{file_type}_table').setHorizontalHeaderLabels(['文件', '大小', '修改时间', '', '', '', ''])
+        eval(f'self.{file_type}_table').setHorizontalHeaderLabels(
+            ['文件', '大小', '修改时间', '', '', '', ''])
         # 设置表格每项大小
         eval(f'self.{file_type}_table').setColumnWidth(0, 429)
         eval(f'self.{file_type}_table').setColumnWidth(1, 120)
@@ -331,12 +337,16 @@ class Main_window(BasicWindow, Ui_MainWindow):
         eval(f'self.{file_type}_table').setColumnWidth(4, 50)
         eval(f'self.{file_type}_table').setColumnWidth(5, 50)
         eval(f'self.{file_type}_table').setColumnWidth(6, 50)
-        eval(f'self.{file_type}_table').setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
-        eval(f'self.{file_type}_table').verticalHeader().setVisible(False)  # 隐藏水平头标签
-        eval(f'self.{file_type}_table').setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
-        eval(f'self.{file_type}_table').setSelectionMode(QAbstractItemView.NoSelection)
+        eval(f'self.{file_type}_table').setEditTriggers(
+            QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+        eval(f'self.{file_type}_table').verticalHeader(
+        ).setVisible(False)  # 隐藏水平头标签
+        eval(f'self.{file_type}_table').setSelectionBehavior(
+            QAbstractItemView.SelectRows)  # 设置为整行选中
+        eval(f'self.{file_type}_table').setSelectionMode(
+            QAbstractItemView.NoSelection)
         eval(f'self.{file_type}_table').setShowGrid(False)  # 不显示网格
-        
+
         for i, folder_ in enumerate(folder_list):
             new = QPushButton(self.stackedWidget)
             objname = f"{folder_['folder_name']}"  # 按钮名称设置
@@ -352,7 +362,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 """ % (BACKGROUND_COLOR, HOVER_COLOR))
             new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))
             new.setText(folder_['folder_name'])
-            new.clicked.connect(lambda: self.open_folder(self.sender()))  # 打开文件夹
+            new.clicked.connect(
+                lambda: self.open_folder(self.sender()))  # 打开文件夹
             eval(f'self.{file_type}_table').setCellWidget(i, 0, new)
             new = QTableWidgetItem(folder_['update_time'].replace('T', ' '))
             eval(f'self.{file_type}_table').setItem(i, 2, new)
@@ -372,7 +383,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 new.setCursor(QCursor(Qt.PointingHandCursor))
                 new.setIcon(qtawesome.icon(self.file_button[btn_name]))
                 new.setToolTip(btn_name)
-                new.clicked.connect(lambda: self.file_operation(self.sender()))  # 文件夹操作
+                new.clicked.connect(
+                    lambda: self.file_operation(self.sender()))  # 文件夹操作
                 eval(f'self.{file_type}_table').setCellWidget(i, j+4, new)
 
         for i, file_ in enumerate(file_list):
@@ -406,9 +418,11 @@ class Main_window(BasicWindow, Ui_MainWindow):
             elif mime in video_list:
                 new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))
             else:
-                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))
+                new.setIcon(
+                    QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))
             new.setText(file_['file_name'])
-            new.clicked.connect(lambda: self.file_preview(self.sender()))  # 文件预览
+            new.clicked.connect(
+                lambda: self.file_preview(self.sender()))  # 文件预览
             eval(f'self.{file_type}_table').setCellWidget(i+folder_num, 0, new)
             new = QTableWidgetItem(file_['file_size'])
             eval(f'self.{file_type}_table').setItem(i+folder_num, 1, new)
@@ -430,8 +444,10 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 new.setCursor(QCursor(Qt.PointingHandCursor))
                 new.setIcon(qtawesome.icon(self.file_button[btn_name]))
                 new.setToolTip(btn_name)
-                new.clicked.connect(lambda: self.file_operation(self.sender()))  # 文件操作
-                eval(f'self.{file_type}_table').setCellWidget(i+folder_num, j+3, new)
+                new.clicked.connect(
+                    lambda: self.file_operation(self.sender()))  # 文件操作
+                eval(f'self.{file_type}_table').setCellWidget(
+                    i+folder_num, j+3, new)
 
     def open_folder(self, btn):
         """打开文件夹界面
@@ -457,6 +473,11 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
+        if operation == '下载':
+            func = threading.Thread(target=client.download,
+                                    args=(file_path, SAVE_PATH,))
+            func.setDaemon(True)
+            func.start()
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
@@ -496,7 +517,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
-        print(fileinfo)
         func = threading.Thread(target=client.upload,
                                 args=(self.user_name, fileinfo[0],))
         func.setDaemon(True)

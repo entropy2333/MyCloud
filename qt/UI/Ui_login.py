@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'd:\coding\python\MyCloud\qt\UI\login.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.14.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -100,6 +100,16 @@ class Ui_LoginWindow(object):
         self.pushButton_4.setGeometry(QtCore.QRect(420, 0, 41, 41))
         self.pushButton_4.setText("")
         self.pushButton_4.setObjectName("pushButton_4")
+        self.label_4 = QtWidgets.QLabel(self.widget_2)
+        self.label_4.setGeometry(QtCore.QRect(0, 0, 101, 41))
+        font = QtGui.QFont()
+        font.setFamily("幼圆")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_4.setFont(font)
+        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_4.setObjectName("label_4")
         LoginWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(LoginWindow)
@@ -113,3 +123,4 @@ class Ui_LoginWindow(object):
         self.label.setText(_translate("LoginWindow", "用户名"))
         self.label_2.setText(_translate("LoginWindow", "密码"))
         self.label_3.setText(_translate("LoginWindow", "验证码"))
+        self.label_4.setText(_translate("LoginWindow", "登陆"))

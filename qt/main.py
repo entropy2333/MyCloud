@@ -6,6 +6,7 @@ from UI.Ui_login import Ui_LoginWindow
 from UI.Ui_main_window import Ui_MainWindow
 from UI.Ui_rename_file import Ui_RenameWindow
 from UI.Ui_share import Ui_ShareWindow
+from UI.Ui_share_link import Ui_ShareLinkWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -484,7 +485,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.rename_window = Rename_window(file_path)
             self.rename_window.show()
         elif operation == '分享':
-            self.share_window = Share_window()
+            self.share_window = Share_window(file_path)
             self.share_window.show()
 
         print(f'{operation}: {file_path}')
@@ -614,22 +615,92 @@ class Rename_window(BasicWindow, Ui_RenameWindow):
 
 # 文件分享窗口
 class Share_window(BasicWindow, Ui_ShareWindow):
-    def __init__(self, file_name, parent=None):
+    def __init__(self, file_path, parent=None):
         super(Share_window, self).__init__(parent)
         self.setupUi(self)
+        # print(file_path)
+        self.file_path = file_path  # 文件路径
+        self.file_name = file_path.split('/')[-1]  # 文件名
+        self.label_5.setText(self.file_name)
+        self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minButton.clicked.connect(self.showMinimized)
+        self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.pushButton_2.clicked.connect(self.btn_share)
+        self.radioButton_2.setChecked(True)
 
         # widget美化
         Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
-        # 重命名按钮
+        Qss += 'QWidget#widget_2{background-color: %s;}' % FUNC_COLOR
+        # 生成分享链接按钮
         Qss += 'QPushButton#pushButton_2{background-color: %s; border-radius:5px;}' % TITLE_COLOR
         Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
         Qss += 'QPushButton#pushButton_2:pressed{background-color: %s; border-radius:5px;}' % LIGHT_FUNC_COLOR
+        Qss += 'QLabel{background-color:%s;}' % FUNC_COLOR
+        Qss += '#label_5{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_6{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_7{background-color:%s; border-radius:0}' % TITLE_COLOR
         Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss)  # 边框部分qss重载
 
+    def btn_share(self):
+        """生成分享链接
+        """
+        password = self.lineEdit.text()
+        if not password:
+            self.warn_dialog = Warn_Dialog()
+            self.warn_dialog.label.setText('请输入分享密码！')
+            self.warn_dialog.show()
+            return
+        if self.radioButton_2.isChecked():
+            share_time = '7天'
+        elif self.radioButton_3.isChecked():
+            share_time = '30天'
+        elif self.radioButton_4.isChecked():
+            share_time = '无期限'
+        self.share_link_window = Share_link_window(self.file_path, password, share_time)
+        self.share_link_window.show()
+        self.doClose()
+
+
+# 分享链接窗口
+class Share_link_window(BasicWindow, Ui_ShareLinkWindow):
+    def __init__(self, file_path, password, share_time, parent=None):
+        super(Share_link_window, self).__init__(parent)
+        self.setupUi(self)
+        # print(file_path)
+        self.file_path = file_path  # 文件路径
+        self.file_name = file_path.split('/')[-1]  # 文件名
+        self.pwd_label.setText(password)
+        self.pwd_label.setTextInteractionFlags(Qt.TextSelectableByMouse)  # 设置标签可复制
+        self.link_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.minButton.clicked.connect(self.showMinimized)
+        self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.pushButton_2.clicked.connect(self.btn_copy)
+
+        # widget美化
+        Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
+        Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
+        Qss += 'QWidget#widget_2{background-color: %s;}' % FUNC_COLOR
+        # 复制分享链接按钮
+        Qss += 'QPushButton#pushButton_2{background-color: %s; border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s; border-radius:5px;}' % LIGHT_FUNC_COLOR
+        Qss += 'QLabel{background-color:%s;}' % FUNC_COLOR
+        Qss += '#link_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#pwd_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#qr_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_7{background-color:%s; border-radius:0}' % TITLE_COLOR
+        Qss += GLOBAL_BUTTON
+        self.setStyleSheet(Qss)  # 边框部分qss重载
+
+    def btn_copy(self):
+        """复制分享链接
+        """
+        print(self.link_label.text())
 
 
 # 登陆窗口

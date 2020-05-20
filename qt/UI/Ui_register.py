@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'd:\coding\python\MyCloud\qt\UI\register.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.14.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -79,16 +79,26 @@ class Ui_RegisterWindow(object):
         self.verticalLayout_2.addWidget(self.lineEdit_3)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
         self.widget_3 = QtWidgets.QWidget(self.centralwidget)
-        self.widget_3.setGeometry(QtCore.QRect(10, 20, 441, 31))
+        self.widget_3.setGeometry(QtCore.QRect(10, 10, 441, 41))
         self.widget_3.setObjectName("widget_3")
         self.pushButton_3 = QtWidgets.QPushButton(self.widget_3)
-        self.pushButton_3.setGeometry(QtCore.QRect(350, 0, 41, 28))
+        self.pushButton_3.setGeometry(QtCore.QRect(350, 0, 41, 41))
         self.pushButton_3.setText("")
         self.pushButton_3.setObjectName("pushButton_3")
         self.pushButton_4 = QtWidgets.QPushButton(self.widget_3)
-        self.pushButton_4.setGeometry(QtCore.QRect(390, 0, 41, 28))
+        self.pushButton_4.setGeometry(QtCore.QRect(390, 0, 41, 41))
         self.pushButton_4.setText("")
         self.pushButton_4.setObjectName("pushButton_4")
+        self.label_4 = QtWidgets.QLabel(self.widget_3)
+        self.label_4.setGeometry(QtCore.QRect(0, 0, 101, 41))
+        font = QtGui.QFont()
+        font.setFamily("幼圆")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_4.setFont(font)
+        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_4.setObjectName("label_4")
         RegisterWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(RegisterWindow)
@@ -101,3 +111,4 @@ class Ui_RegisterWindow(object):
         self.label.setText(_translate("RegisterWindow", "用户名"))
         self.label_2.setText(_translate("RegisterWindow", "密码"))
         self.label_3.setText(_translate("RegisterWindow", "重复密码"))
+        self.label_4.setText(_translate("RegisterWindow", "注册"))

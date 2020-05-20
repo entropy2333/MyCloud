@@ -84,7 +84,7 @@ video_list = ['asf', 'wav', 'rm', 'mp4',
               'real', 'avi', 'mkv', 'webm', 'flv', 'mov']
 
 
-# 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口)
+# 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口，窗口阴影)
 class BasicWindow(QMainWindow):
     def __init__(self, parent=None):
         super(BasicWindow, self).__init__(parent)
@@ -96,6 +96,12 @@ class BasicWindow(QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 去掉窗口标题栏
         self.animation = QPropertyAnimation(self, b'windowOpacity')  # 窗口透明度动画类
         self.animation.setDuration(500)  # 持续时间0.5秒
+        # 添加阴影
+        effect = QGraphicsDropShadowEffect(self)
+        effect.setBlurRadius(12)
+        effect.setOffset(0, 0)
+        effect.setColor(Qt.gray)
+        self.setGraphicsEffect(effect)
 
     def doShow(self):
         """淡入

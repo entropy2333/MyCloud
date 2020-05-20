@@ -1,6 +1,8 @@
 import json
 import requests
 import hashlib
+import os
+import base64
 
 
 class Client(requests.Session):
@@ -9,6 +11,7 @@ class Client(requests.Session):
         super().__init__()
         self.SERVER_URL = 'http://127.0.0.1:9999'
         self.UA = 'pyqt'
+        self.upload_process = {}
 
     def user_login(self, username, password):
         data = {
@@ -46,29 +49,77 @@ class Client(requests.Session):
         return response
 
     def upload(self, username, filepath, pwd=''):
-        with open(filepath, 'rb') as f:
-            file = f.read()
-        md5 = hashlib.md5(file).hexdigest()
+        file = []
+        file_all = b''
+        size_all = os.path.getsize(filepath)
+        size_finish = 0
+        CHUNK_SIZE = 1048576
         filename = filepath.split('/')[-1]
         filetype = filepath.split('.')[-1].lower()
+        with open(filepath, 'rb') as f:
+            while True:
+                a = f.read(CHUNK_SIZE)
+                if len(a):
+                    a_base64 = base64.encodebytes(a).decode("utf-8")
+                    file_all += a
+                    size_finish += len(a)
+                    self.upload_process[filename] = size_finish / size_all
+                    file.append(a_base64)
+                else:
+                    f.close()
+                    break
         data = {
             "ua": self.UA,
             "username": username,
             "filename": filename,
-            "data": file,
             "type": filetype,
-            "md5": md5,
-            "pwd": ''
+            "pwd": pwd,
+            'length': len(file)
         }
+        md5 = hashlib.md5(file_all).hexdigest()
+        data["md5"] = md5
+        # data["encoding"] = chardet.detect(file[0])['encoding']
+        for index, d in enumerate(file):
+            data[f'data{index}'] = d
         response = self.post(f'{self.SERVER_URL}/upload_file/', data)
         response = response.json()
+        self.upload_process.pop(filename)
         if response['upload_flag']:
             return True
         else:
             return response['error_info']
 
+    def download(self, filepath, savepath='e:\\'):
+        response = self.get(
+            f'{self.SERVER_URL}/download_file/?file_path={filepath}&ua=pyqt')
+        response = response.json()
+        length = response['length']
+        md5 = response['md5']
+        filename = response['filename']
+        data = []
+        for i in range(length):
+            data.append(base64.b64decode(response[f'data{i}']))
+        data_all = b''
+        for i in data:
+            data_all += i
+        md5_ = hashlib.md5(data_all).hexdigest()
+        if md5 != md5_:
+            return {
+                "download_flag": False,
+                "error_info": "MD5 error!"
+            }
+        else:
+            with open(savepath+filename, 'wb+') as f:
+                for i in data:
+                    f.write(i)
+                f.close()
+            return {"upload_flag": True}
+
 
 if __name__ == "__main__":
     client = Client()
-    print(client.user_login('ddd', 'dd'))
-    print(client.fetch_all_file())
+    print(client.user_login('ddd', '1'))
+    # print(client.fetch_all_file())
+    # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
+    print(client.download('ddd/qt测试.txt'))
+

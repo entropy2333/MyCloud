@@ -63,15 +63,15 @@ class Client(requests.Session):
                     a_base64 = base64.encodebytes(a).decode("utf-8")
                     file_all += a
                     size_finish += len(a)
-                    self.upload_process[filename] = size_finish / size_all
+                    self.upload_process[filepath] = size_finish / size_all
                     file.append(a_base64)
                 else:
                     f.close()
                     break
         data = {
             "ua": self.UA,
-            "username": username,
-            "filename": filename,
+            "user_name": username,
+            "file_name": filename,
             "type": filetype,
             "pwd": pwd,
             'length': len(file)
@@ -95,7 +95,7 @@ class Client(requests.Session):
         response = response.json()
         length = response['length']
         md5 = response['md5']
-        filename = response['filename']
+        filename = response['file_name']
         data = []
         for i in range(length):
             data.append(base64.b64decode(response[f'data{i}']))
@@ -121,6 +121,22 @@ class Client(requests.Session):
                     f.write(i)
                 f.close()
             return {"upload_flag": True}
+
+    def delete(self, username, filepath):
+        pwd = filepath.rsplit('/', 1)[0]
+        data = {
+            'ua': 'pyqt',
+            "user_name": username,
+            "file_path": filepath,
+            "pwd": pwd
+        }
+        response = self.post(f'{self.SERVER_URL}/delete_file/', data)
+        response = response.json()
+        if response['delete_flag']:
+            return True
+
+    def rename(self, username, filepath, newfilename):
+        pwd = filepath.rsplit('/', 1)[0]
 
 
 if __name__ == "__main__":

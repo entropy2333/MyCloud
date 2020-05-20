@@ -478,6 +478,14 @@ class Main_window(BasicWindow, Ui_MainWindow):
                                     args=(file_path, SAVE_PATH,))
             func.setDaemon(True)
             func.start()
+        if operation == '删除':
+            client.delete(username=self.user_name, filepath=file_path)
+            # func = threading.Thread(target=client.download,
+            #                         args=(file_path, SAVE_PATH,))
+            # func.setDaemon(True)
+            # func.start()
+        if operation == '重命名':
+            pass
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):

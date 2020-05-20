@@ -837,11 +837,15 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
         self.doShow()
 
     def btn_register(self):
-        """登陆按钮事件
+        """注册按钮事件
         """
-        self.login_window = Login_window()
-        self.login_window.show()
-        self.close()
+        user_name = self.lineEdit.text()  # 获取用户输入的用户名
+        password = self.lineEdit_2.text()  # 获取用户输入的密码
+        repassword = self.lineEdit_3.text()  # 获取用户重复输入的密码
+        if client.user_register(user_name, password, repassword):
+            self.login_window = Login_window()
+            self.login_window.show()
+            self.close()
 
 
 # 传输列表界面

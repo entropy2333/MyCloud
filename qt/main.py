@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from client import *
 
+import threading
 import sys
 import os
 import qtawesome
@@ -18,6 +19,7 @@ sys.path.append(f'{root_path}\\qt')
 
 
 ABSOLUTE_PATH = '\\'.join(os.path.abspath(__file__).split('\\')[:-1])
+SAVE_PATH = os.path.join('c:\\Users', (os.environ['USERNAME']))
 BACKGROUND_COLOR = '#F8F8FF'  # 主界面底色
 TITLE_COLOR = '#F0E68C'  # 标题栏颜色
 FUNC_COLOR = '#FFFFE0'  # 功能栏颜色
@@ -143,6 +145,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
+
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
@@ -282,25 +285,19 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
         else:
             self.warn_dialog = Warn_Dialog()
-            self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
+            # self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
             self.warn_dialog.show()
 
     def btn_upload(self):
         """文件上传
         """
         fileinfo = self.uploadselect.getOpenFileName(
-            self, 'OpenFile', "d:/GoogleDownload")
+            self, 'OpenFile', "c:/")
         print(fileinfo)
-        client.upload(self.user_name, fileinfo[0])
-        # filepath, filetype = os.path.splitext(fileinfo[0])
-        # filename = filepath.split("/")[-1]
-        # if fileinfo[0] != '':
-        #     with open(fileinfo[0], mode='rb') as f:
-        #         r = f.read()
-        #         f.close()
-        #     file_r = base64.encodebytes(r).decode("utf-8")
-        #     client.send_Msg(file_r, self.destsend, filetype, filename)
-        print('文件上传')
+        func = threading.Thread(target=client.upload,
+                                args=(self.user_name, fileinfo[0],))
+        func.setDaemon(True)
+        func.start()
 
     def btn_mkdir(self):
         """新建文件夹

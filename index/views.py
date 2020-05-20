@@ -3,6 +3,7 @@ import datetime
 import os
 import shutil
 import hashlib
+import base64
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
@@ -106,8 +107,10 @@ def delete_file(request):
         file_path = request.POST.get('file_path')
         user_id = user_obj.id
         pwd = request.POST.get('pwd')
-        models.FileInfo.objects.get(
-            file_path=file_path, user_id=user_id).delete()
+        file_obj = models.FileInfo.objects.filter(
+            file_path=file_path, user_id=user_id)
+        for i in file_obj:
+            i.delete()
         try:
             os.remove(BASE_DIR + '/static/' + file_path)
         except Exception as e:
@@ -182,8 +185,7 @@ def download_share_file(request):
             response = FileResponse(file)
             response['status'] = 'success'
             response['Content-Type'] = 'application/octet-stream'
-            response['Content-Disposition'] = 'attachment;filename={}'.format(
-                urlquote(file_name))
+            response['Content-Disposition'] = f'attachment;filename={urlquote(file_name)}'
             return response
         else:
             return render(request, 'share.html', {'info': "提取码错误"})
@@ -290,16 +292,40 @@ def mkdir(request):
 
 @login_required
 def download_file(request):
+    ua = request.GET.get('ua', '')
     file_path = request.GET.get('file_path')
     file_name = file_path.split('/')[-1]
     file_dir = BASE_DIR + '/static/' + file_path
-    file = open(file_dir, 'rb')
-    # print(file_dir)
-    response = FileResponse(file)
-    response['Content-Type'] = 'application/octet-stream'
-    response['Content-Disposition'] = 'attachment;filename={}'.format(
-        urlquote(file_name))
-    return response
+    if ua == 'pyqt':
+        CHUNK_SIZE = 1048576
+        file = []
+        file_all = b''
+        with open(file_dir, 'rb') as f:
+            while True:
+                a = f.read(CHUNK_SIZE)
+                if len(a):
+                    a_base64 = base64.encodebytes(a).decode("utf-8")
+                    file_all += a
+                    # size_finish += len(a)
+                    # self.upload_process[filename] = size_finish / size_all
+                    file.append(a_base64)
+                else:
+                    f.close()
+                    break
+        response = {'length': len(file),
+                    "filename": file_name
+                    }
+        md5 = hashlib.md5(file_all).hexdigest()
+        response["md5"] = md5
+        for index, d in enumerate(file):
+            response[f'data{index}'] = d
+        return JsonResponse(response)
+    else:
+        file = open(file_dir, 'rb')
+        response = FileResponse(file)
+        response['Content-Type'] = 'application/octet-stream'
+        response['Content-Disposition'] = f'attachment;filename={urlquote(file_name)}'
+        return response
 
 
 @login_required
@@ -309,12 +335,20 @@ def upload_file(request):
     elif request.method == "POST":
         ua = request.POST.get('ua', '')
         if ua == 'pyqt':
+            data = []
             user_name = request.POST.get('username', '')
             user_obj = User.objects.get(username=user_name)
-            data = request.POST.get('data', '').encode()
             file_type = request.POST.get('type', '')
+            length = int(request.POST.get('length'))
+            for i in range(length):
+                data.append(base64.b64decode(
+                    request.POST.get(f'data{i}', '')))
+            # data_all = ''.join(data).encode()
+            data_all = b''
+            for i in data:
+                data_all += i
             md5 = request.POST.get('md5', '')
-            md5_ = hashlib.md5(data).hexdigest()
+            md5_ = hashlib.md5(data_all).hexdigest()
             if md5 != md5_:
                 return JsonResponse({
                     "upload_flag": False,
@@ -322,7 +356,7 @@ def upload_file(request):
                 })
             pwd = request.POST.get('pwd', '')
             file_type = judge_filepath(file_type)
-            file_size = format_size(len(data))
+            file_size = format_size(len(data_all))
             file_name = request.POST.get('filename', '')
         else:
             user_name = str(request.user)
@@ -343,21 +377,22 @@ def upload_file(request):
             belong_folder=pwd, file_type=file_type, file_name__icontains=file_name, user_id=user_obj.id)
         while (file_obj_exist):
             file_version += 1
-            # file_purename = file_purename[0:file_purename_len] + ('({})'.format(file_version) if file_version else '')
             file_name = file_name.replace(
-                '.'+file_suffix, ('({})'.format(file_version) if file_version else '')+'.'+file_suffix)
+                '.'+file_suffix, (f'({file_version})' if file_version else '')+'.'+file_suffix)
             file_obj_exist = models.FileInfo.objects.filter(
                 belong_folder=pwd, file_type=file_type, file_path=file_path, file_name__icontains=file_name, user_id=user_obj.id)
 
         file_path = file_path.replace(
-            '.'+file_suffix, ('({})'.format(file_version) if file_version else '') + '.' + file_suffix)
+            '.'+file_suffix, (f'({file_version})' if file_version else '') + '.' + file_suffix)
 
         models.FileInfo.objects.create(user_id=user_obj.id, file_path=file_path,
                                        file_name=file_name, update_time=update_time, file_size=file_size,
                                        file_type=file_type, belong_folder=pwd)
         if ua == 'pyqt':
             with open(save_path + file_name, 'wb+') as f:
-                f.write(data)
+                for i in data:
+                    f.write(i)
+                f.close()
             return JsonResponse({
                 "upload_flag": True,
             })

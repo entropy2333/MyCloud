@@ -35,7 +35,7 @@ class Client(requests.Session):
         if response['register_flag']:
             return True
         else:
-            return r['error_info']
+            return response['error_info']
 
     def fetch_all_file(self):
         params = {
@@ -70,5 +70,5 @@ class Client(requests.Session):
 
 if __name__ == "__main__":
     client = Client()
-    print(client.user_login('mkf', '123'))
+    print(client.user_login('ddd', 'dd'))
     print(client.fetch_all_file())

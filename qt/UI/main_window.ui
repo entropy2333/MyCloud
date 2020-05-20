@@ -386,9 +386,9 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>7</number>
+      <number>5</number>
      </property>
-     <widget class="QWidget" name="allfile_page" native="true">
+     <widget class="QWidget" name="allfile_page">
       <widget class="QTableWidget" name="allfile_table">
        <property name="geometry">
         <rect>
@@ -410,7 +410,7 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
@@ -442,7 +442,7 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
@@ -474,7 +474,7 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
@@ -506,7 +506,7 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
@@ -538,7 +538,7 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
@@ -570,12 +570,27 @@
        </column>
        <column>
         <property name="text">
-         <string>时间</string>
+         <string>修改时间</string>
         </property>
        </column>
        <column>
         <property name="text">
          <string>操作</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>新建列</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>新建列</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>新建列</string>
         </property>
        </column>
       </widget>

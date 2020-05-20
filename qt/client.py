@@ -38,7 +38,7 @@ class Client(requests.Session):
         if response['register_flag']:
             return True
         else:
-            return r['error_info']
+            return response['error_info']
 
     def fetch_all_file(self):
         params = {
@@ -120,7 +120,6 @@ if __name__ == "__main__":
     client = Client()
     print(client.user_login('ddd', '1'))
     # print(client.fetch_all_file())
-    # print(client.upload('ddd', 'd:/GoogleDownload/qt测试.txt', pwd=''))
-    print(client.download('ddd/11111.png'))
+    # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
+    print(client.download('ddd/qt测试.txt'))
 
-    # 02 渗透测试.pdf qt测试.txt

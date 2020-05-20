@@ -18,6 +18,7 @@ root_path = os.getcwd()
 sys.path.append(f'{root_path}\\qt')
 
 
+FILE_ROOT_PATH = '../static/'  # 本地登陆的文件根目录
 ABSOLUTE_PATH = '\\'.join(os.path.abspath(__file__).split('\\')[:-1])
 SAVE_PATH = os.path.join('c:\\Users', (os.environ['USERNAME']))
 BACKGROUND_COLOR = '#F8F8FF'  # 主界面底色
@@ -38,33 +39,43 @@ QPushButton:hover{
 }
 #closeButton{
     background:%s;
-    max-width: 36px;
-    max-height: 36px;
-    font-size: 12px;
-    font-family: "Webdings";
-    qproperty-text: "r";
-    border-radius: 10px;
+    max-width:36px;
+    max-height:36px;
+    font-size:12px;
+    font-family:"Webdings";
+    qproperty-text:"r";
+    border-radius:10px;
 }
 #closeButton:hover{
-    color: white;
+    color:white;
     border:none;
-    background: red;
+    background:red;
 }
 #minButton{
     background:%s;
-    max-width: 36px;
-    max-height: 36px;
-    font-family: "Webdings";
+    max-width:36px;
+    max-height:36px;
+    font-family:"Webdings";
     font-size: 12px;
-    qproperty-text: "0";
-    border-radius: 10px;
+    qproperty-text:"0";
+    border-radius:10px;
 }
 #minButton:hover{
     color:black;
     border:none;
-    background: %s;
+    background:%s;
 }
-""" % (FUNC_COLOR, GRAY_COLOR, HOVER_COLOR, TITLE_COLOR, TITLE_COLOR, BACKGROUND_COLOR)
+QTableWidget{
+    background:%s;
+    border:none;
+}
+""" % (FUNC_COLOR, GRAY_COLOR, HOVER_COLOR, TITLE_COLOR, TITLE_COLOR, BACKGROUND_COLOR,  BACKGROUND_COLOR)
+
+# 文件类型判断
+img_list = ['bmp', 'jpeg', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx', 'svg', 'psd', 'cdr', 'pcd', 'dxf', 'ufo', 'eps', 'ai', 'raw', 'WMF', 'webp']
+doc_list = ['txt', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'pdf']
+music_list = ['mp3', 'cd', 'ogg', 'wma', 'mp3pro', 'ape', 'flac', 'module', 'midi', 'vqf', 'dts', 'm4a', 'aac', 'ac3']
+video_list = ['asf', 'wav', 'rm', 'mp4', 'real', 'avi', 'mkv', 'webm', 'flv', 'mov']
 
 
 # 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口)
@@ -150,6 +161,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
                               'music_btn': False, 'video_btn': False, 'other_btn': False}  # 判断各类型文件是否存在
+        self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square', '下载': 'fa.cloud-download', '分享': 'fa.share-alt-square'}  # 文件操作及对应图标
         self.logo.setPixmap(QPixmap(
             f'{ABSOLUTE_PATH}/img/logo.png').scaled(self.logo.width(), self.logo.height()))  # 添加logo
         self.label_3.setPixmap(QPixmap(
@@ -252,17 +264,208 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         self.allfile_btn.setStyleSheet(
             '#allfile_btn{background-color:%s; color:%s; border-left:6px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
+        for btn in self.left_column:  # 其他按钮全部恢复
+            if btn != 'allfile_btn':
+                eval(f'self.{btn}').setStyleSheet(
+                    '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
+        self.all_file = client.fetch_all_file()
+        file_list = self.all_file['file_list']
+        folder_list = self.all_file['folder_list']
+        # print(self.all_file)
+        # 所有文件页面初始化
+        if file_list or folder_list: self.is_file_exist['allfile_btn'] = True
         if self.is_file_exist['allfile_btn']:
             self.stackedWidget.setCurrentIndex(0)
+            self.file_table('allfile', self.all_file)
         else:
             self.stackedWidget.setCurrentIndex(6)
+        # 各类文件字典生成
+        doc_files = {'file_list':[], 'folder_list':[]}
+        img_files = {'file_list':[], 'folder_list':[]}
+        music_files = {'file_list':[], 'folder_list':[]}
+        video_files = {'file_list':[], 'folder_list':[]}
+        other_files = {'file_list':[], 'folder_list':[]}
+        for i, file_ in enumerate(file_list):
+            mime = file_['file_name'].split('.')[-1]
+            if mime in doc_list: 
+                self.is_file_exist['doc_btn'] = True
+                doc_files['file_list'].append(file_)
+            elif mime in img_list:
+                self.is_file_exist['img_btn'] = True
+                img_files['file_list'].append(file_)
+            elif mime in music_list: 
+                self.is_file_exist['music_btn'] = True
+                music_files['file_list'].append(file_)
+            elif mime in video_list: 
+                self.is_file_exist['video_btn'] = True
+                video_files['file_list'].append(file_)
+            else: 
+                self.is_file_exist['other_btn'] = True
+                other_files['file_list'].append(file_)
+        # 各类文件页面初始化
+        self.file_table('doc', doc_files)
+        self.file_table('img', img_files)
+        self.file_table('music', music_files)
+        self.file_table('video', video_files)
+        self.file_table('other', other_files)
+        
+    def file_table(self, file_type, file_dict):
+        """文件表初始化
+
+        Arguments:
+            file_type {str} -- 文件类型
+            file_dict {dict} -- 所有文件的字典
+        """
+        folder_num = len(file_dict['folder_list'])
+        folder_list = file_dict['folder_list']
+        file_num = len(file_dict['file_list'])
+        file_list = file_dict['file_list']
+        eval(f'self.{file_type}_table').setColumnCount(7)
+        eval(f'self.{file_type}_table').setRowCount(folder_num + file_num)
+        eval(f'self.{file_type}_table').setHorizontalHeaderLabels(['文件', '大小', '修改时间', '', '', '', ''])
+        # 设置表格每项大小
+        eval(f'self.{file_type}_table').setColumnWidth(0, 429)
+        eval(f'self.{file_type}_table').setColumnWidth(1, 120)
+        eval(f'self.{file_type}_table').setColumnWidth(2, 180)
+        eval(f'self.{file_type}_table').setColumnWidth(3, 50)
+        eval(f'self.{file_type}_table').setColumnWidth(4, 50)
+        eval(f'self.{file_type}_table').setColumnWidth(5, 50)
+        eval(f'self.{file_type}_table').setColumnWidth(6, 50)
+        eval(f'self.{file_type}_table').setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+        eval(f'self.{file_type}_table').verticalHeader().setVisible(False)  # 隐藏水平头标签
+        eval(f'self.{file_type}_table').setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
+        eval(f'self.{file_type}_table').setSelectionMode(QAbstractItemView.NoSelection)
+        eval(f'self.{file_type}_table').setShowGrid(False)  # 不显示网格
+        
+        for i, folder_ in enumerate(folder_list):
+            new = QPushButton(self.stackedWidget)
+            objname = f"{folder_['folder_name']}"  # 按钮名称设置
+            new.setObjectName(objname)
+            new.setStyleSheet("""
+                QPushButton{
+                    background-color:%s;
+                    text-align:left
+                }
+                QPushButton:hover{
+                    color:%s;
+                }
+                """ % (BACKGROUND_COLOR, HOVER_COLOR))
+            new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))
+            new.setText(folder_['folder_name'])
+            new.clicked.connect(lambda: self.open_folder(self.sender()))  # 打开文件夹
+            eval(f'self.{file_type}_table').setCellWidget(i, 0, new)
+            new = QTableWidgetItem(folder_['update_time'].replace('T', ' '))
+            eval(f'self.{file_type}_table').setItem(i, 2, new)
+            # 操作部分
+            for j, btn_name in enumerate(['重命名', '删除']):
+                new = QPushButton(self.stackedWidget)
+                objname = btn_name + '%^' + folder_['folder_name']  # 按钮名称设置
+                new.setObjectName(f'{objname}')
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setIcon(qtawesome.icon(self.file_button[btn_name]))
+                new.setToolTip(btn_name)
+                new.clicked.connect(lambda: self.file_operation(self.sender()))  # 文件夹操作
+                eval(f'self.{file_type}_table').setCellWidget(i, j+4, new)
+
+        for i, file_ in enumerate(file_list):
+            new = QPushButton(self.stackedWidget)
+            objname = f"{file_['file_path']}"  # 按钮名称设置
+            new.setObjectName(objname)
+            new.setStyleSheet("""
+                QPushButton{
+                    background-color:%s;
+                    text-align:left
+                }
+                QPushButton:hover{
+                    color:%s;
+                }
+                """ % (BACKGROUND_COLOR, HOVER_COLOR))
+            mime = file_['file_name'].split('.')[-1]
+            if mime in ['doc', 'docx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))
+            elif mime == 'txt':
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/txt.png'))
+            elif mime in ['ppt', 'pptx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/ppt.png'))
+            elif mime in ['xls', 'xlsx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/xls.png'))
+            elif mime == 'pdf':
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/pdf.png'))
+            elif mime in img_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))
+            elif mime in music_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))
+            elif mime in video_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))
+            else:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))
+            new.setText(file_['file_name'])
+            new.clicked.connect(lambda: self.file_preview(self.sender()))  # 文件预览
+            eval(f'self.{file_type}_table').setCellWidget(i+folder_num, 0, new)
+            new = QTableWidgetItem(file_['file_size'])
+            eval(f'self.{file_type}_table').setItem(i+folder_num, 1, new)
+            new = QTableWidgetItem(file_['update_time'].replace('T', ' '))
+            eval(f'self.{file_type}_table').setItem(i+folder_num, 2, new)
+            # 操作部分
+            for j, btn_name in enumerate(['下载', '重命名', '分享', '删除']):
+                new = QPushButton(self.stackedWidget)
+                objname = btn_name + '%^' + file_['file_path']
+                new.setObjectName(objname)  # 文件操作按钮名称
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setIcon(qtawesome.icon(self.file_button[btn_name]))
+                new.setToolTip(btn_name)
+                new.clicked.connect(lambda: self.file_operation(self.sender()))  # 文件操作
+                eval(f'self.{file_type}_table').setCellWidget(i+folder_num, j+3, new)
+
+    def open_folder(self, btn):
+        """打开文件夹界面
+
+        Arguments:
+            btn {QPushButton} -- 打开文件夹的按钮
+        """
+        print(f'打开文件夹: {btn.objectName()}')
+
+    def file_preview(self, btn):
+        """预览文件
+
+        Arguments:
+            btn {QPushButton} -- 预览文件的按钮
+        """
+        print(f'预览文件: {btn.objectName()}')
+
+    def file_operation(self, btn):
+        """文件操作
+
+        Arguments:
+            btn {QPushButton} -- 操作文件的按钮
+        """
+        operation = btn.objectName().split('%^')[0]
+        file_path = btn.objectName().split('%^')[1]
+        print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
         """左边栏按钮对应事件
         """
-        index(self.username)
+        # index(self.username)
         eval(f'self.{left_btn}').setStyleSheet('#%s{background-color:%s; color:%s; border-left:6px solid %s}' %
                                                (left_btn, FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))  # 当前点击按钮高亮
+        # print(left_btn)
         if self.is_file_exist[f'{left_btn}']:
             self.stackedWidget.setCurrentIndex(
                 self.left_column[left_btn])  # 切换当前页面
@@ -317,6 +520,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_refresh(self):
         """刷新
         """
+        self.init_ui()
         print("刷新")
 
     def btn_search(self):
@@ -380,7 +584,7 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         user_name = self.lineEdit.text()  # 获取用户输入的用户名
         password = self.lineEdit_2.text()  # 获取用户输入的密码
         code_check = self.code.check(self.lineEdit_3.text())  # 验证码验证
-        if code_check:
+        if not code_check:
             if client.user_login(user_name, password):
                 self.main_window = Main_window(user_name)
                 self.main_window.show()

@@ -49,34 +49,13 @@
       <string/>
      </property>
     </widget>
-    <widget class="QLabel" name="name">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>10</y>
-       <width>91</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Consolas</family>
-       <pointsize>15</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>iDrive</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="logo">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>4</y>
-       <width>51</width>
-       <height>41</height>
+       <x>10</x>
+       <y>-20</y>
+       <width>101</width>
+       <height>101</height>
       </rect>
      </property>
      <property name="text">

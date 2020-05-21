@@ -11,6 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
 from client import *
 
 import threading
@@ -40,7 +41,7 @@ QPushButton:hover{
     border-radius:10px;
     color:%s;
 }
-#closeButton{
+# closeButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -49,12 +50,12 @@ QPushButton:hover{
     qproperty-text:"r";
     border-radius:10px;
 }
-#closeButton:hover{
+# closeButton:hover{
     color:white;
     border:none;
     background:red;
 }
-#minButton{
+# minButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -63,7 +64,7 @@ QPushButton:hover{
     qproperty-text:"0";
     border-radius:10px;
 }
-#minButton:hover{
+# minButton:hover{
     color:black;
     border:none;
     background:%s;
@@ -487,9 +488,19 @@ class Main_window(BasicWindow, Ui_MainWindow):
                                     args=(file_path, SAVE_PATH,))
             func.setDaemon(True)
             func.start()
+        if operation == '删除':
+            self.delete_thread = newThread(
+                mode='delete', args=(self.user_name, file_path,))
+            self.delete_thread.start()
+            self.delete_thread.trigger.connect(self.init_ui)
         elif operation == '重命名':
-            self.rename_window = Rename_window(file_path)
+            self.rename_window = Rename_window(
+                file_path=file_path, user_name=self.user_name)
             self.rename_window.show()
+            self.upload_thread = newThread(mode='refresh')
+            self.upload_thread.start()
+            self.upload_thread.trigger.connect(self.init_ui)
+
         elif operation == '分享':
             self.share_window = Share_window(file_path)
             self.share_window.show()
@@ -522,7 +533,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.transfer_window = Transfer_window()
             self.is_open_tw = True
             self.transfer_window.show()
-            self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
         else:
             self.warn_dialog = Warn_Dialog()
             self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
@@ -531,12 +541,19 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_upload(self):
         """文件上传
         """
+
+        self.upload_flag = False
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
-        func = threading.Thread(target=client.upload,
-                                args=(self.user_name, fileinfo[0],))
-        func.setDaemon(True)
-        func.start()
+        if os.path.exists(fileinfo[0]):
+            # func = MyThread(target=client.upload, args=(
+            #     self.user_name, fileinfo[0],))
+            # func.run()
+            self.refresh_thread = newThread(mode='upload', args=(
+                self.user_name, fileinfo[0],))
+            self.refresh_thread.start()
+            self.refresh_thread.trigger.connect(self.init_ui)
+            # func.start()
 
     def btn_mkdir(self):
         """新建文件夹
@@ -578,23 +595,56 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.doClose()
 
 
+class newThread(QThread):
+    '''线程类'''
+    trigger = pyqtSignal(str)
+
+    def __init__(self, mode, args=()):
+        QThread.__init__(self)
+        self.mode = mode
+        self.args = args
+
+    def run(self):
+        if self.mode == 'refresh':
+            while True:
+                try:
+                    if login_window.main_window.rename_window.rename_flag:
+                        self.trigger.emit(str(1))
+                        login_window.main_window.rename_window.rename_flag = False
+                        break
+                except:
+                    continue
+        elif self.mode == 'upload':
+            flag = client.upload(username=self.args[0], filepath=self.args[1])
+            if flag:
+                self.trigger.emit(str(1))
+        elif self.mode == 'delete':
+            flag = client.delete(username=self.args[0], filepath=self.args[1])
+            if flag:
+                self.trigger.emit(str(1))
+
+
 # 文件重命名窗口
 class Rename_window(BasicWindow, Ui_RenameWindow):
-    def __init__(self, file_path, parent=None):
+    def __init__(self, user_name, file_path, parent=None):
         super(Rename_window, self).__init__(parent)
         self.setupUi(self)
         # print(file_path)
-        self.folder = file_path.split('/')[0] + '/'
+        self.user_name = user_name
+        self.file_path = file_path
+        self.rename_flag = False
         name = file_path.split('/')[-1].split('.')[0]
         try:
-            self.mime = '.' + file_path.split('/')[-1].split('.')[1]
+            self.mime = '.' + file_path.rsplit('.', 1)[1]
         except:  # 文件夹无后缀
             self.mime = ''
             self.folder = ''
         self.lineEdit.setText(name)
         self.label_2.setText(self.mime)
-        self.label.setStyleSheet('QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
-        self.label_2.setStyleSheet('QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
+        self.label.setStyleSheet(
+            'QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
+        self.label_2.setStyleSheet(
+            'QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
         self.pushButton_2.clicked.connect(self.btn_rename)
         self.pushButton_2.setCursor(QCursor(Qt.PointingHandCursor))
         self.closeButton.clicked.connect(self.doClose)
@@ -611,12 +661,15 @@ class Rename_window(BasicWindow, Ui_RenameWindow):
         Qss += 'QPushButton#pushButton_2:pressed{background-color:%s; border-radius:5px;}' % LIGHT_FUNC_COLOR
         Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss)  # 边框部分qss重载
-        
+
     def btn_rename(self):
         """重命名
         """
-        new_name = self.folder + self.lineEdit.text() + self.mime
-        print(f'重命名完成： {new_name}')
+        file_path = self.file_path
+        new_file_name = self.lineEdit.text()
+        self.rename_flag = client.rename(username=self.user_name,
+                                         filepath=self.file_path, newfilename=new_file_name)
+        print(f'重命名完成： {new_file_name}')
 
 
 # 文件分享窗口
@@ -665,7 +718,8 @@ class Share_window(BasicWindow, Ui_ShareWindow):
             share_time = '30天'
         elif self.radioButton_4.isChecked():
             share_time = '无期限'
-        self.share_link_window = Share_link_window(self.file_path, password, share_time)
+        self.share_link_window = Share_link_window(
+            self.file_path, password, share_time)
         self.share_link_window.show()
         self.doClose()
 
@@ -679,7 +733,8 @@ class Share_link_window(BasicWindow, Ui_ShareLinkWindow):
         self.file_path = file_path  # 文件路径
         self.file_name = file_path.split('/')[-1]  # 文件名
         self.pwd_label.setText(password)
-        self.pwd_label.setTextInteractionFlags(Qt.TextSelectableByMouse)  # 设置标签可复制
+        self.pwd_label.setTextInteractionFlags(
+            Qt.TextSelectableByMouse)  # 设置标签可复制
         self.link_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.closeButton.clicked.connect(self.doClose)
         self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))

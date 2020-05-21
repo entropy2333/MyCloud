@@ -102,20 +102,30 @@ def delete_file(request):
     if request.method == 'GET':
         return redirect('/folder/?pdir=' + pwd)
     elif request.method == 'POST':
-        user_name = str(request.user)
-        user_obj = User.objects.get(username=user_name)
+        ua = request.POST.get('ua', '')
+        if ua == 'pyqt':
+            user_name = request.POST.get('user_name')
+        else:
+            user_name = str(request.user)
         file_path = request.POST.get('file_path')
-        user_id = user_obj.id
         pwd = request.POST.get('pwd')
+        user_obj = User.objects.get(username=user_name)
+        user_id = user_obj.id
         file_obj = models.FileInfo.objects.filter(
             file_path=file_path, user_id=user_id)
+        print('path', file_path)
         for i in file_obj:
             i.delete()
         try:
             os.remove(BASE_DIR + '/static/' + file_path)
         except Exception as e:
             print(e)
-        return redirect('/folder/?pdir=' + pwd)
+        if ua == 'pyqt':
+            return JsonResponse({
+                'delete_flag': True
+            })
+        else:
+            return redirect('/folder/?pdir=' + pwd)
 
 
 @login_required
@@ -196,11 +206,15 @@ def rename_file(request):
     if request.method == 'GET':
         return redirect('/folder/?pdir=' + pwd)
     elif request.method == 'POST':
-        user = str(request.user)
-        user_id = User.objects.get(username=user).id
+        ua = request.POST.get('ua', '')
+        if ua == 'pyqt':
+            user_name = request.POST.get('user_name')
+        else:
+            user_name = str(request.user)
+        user_id = User.objects.get(username=user_name).id
         old_file_name = request.POST.get('old_file_name')
-        file_type = old_file_name.split('.')[-1]
-        new_file_name = request.POST.get('new_file_name')+'.'+file_type
+        file_suffix = old_file_name.split('.')[-1]
+        new_file_name = request.POST.get('new_file_name')+'.'+file_suffix
         pwd = request.POST.get('pwd', '')
         file_obj = models.FileInfo.objects.get(
             belong_folder=pwd, file_name=old_file_name, user_id=user_id)
@@ -218,7 +232,12 @@ def rename_file(request):
             share_obj[0].file_path = new_path
             share_obj[0].file_name = new_file_name
             share_obj[0].save()
-        return redirect('/folder/?pdir=' + pwd)
+        if ua == 'pyqt':
+            return JsonResponse({
+                'rename_flag': True
+            })
+        else:
+            return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 
 
@@ -313,7 +332,7 @@ def download_file(request):
                     f.close()
                     break
         response = {'length': len(file),
-                    "filename": file_name
+                    "file_name": file_name
                     }
         md5 = hashlib.md5(file_all).hexdigest()
         response["md5"] = md5
@@ -336,7 +355,7 @@ def upload_file(request):
         ua = request.POST.get('ua', '')
         if ua == 'pyqt':
             data = []
-            user_name = request.POST.get('username', '')
+            user_name = request.POST.get('user_name', '')
             user_obj = User.objects.get(username=user_name)
             file_type = request.POST.get('type', '')
             length = int(request.POST.get('length'))
@@ -357,7 +376,7 @@ def upload_file(request):
             pwd = request.POST.get('pwd', '')
             file_type = judge_filepath(file_type)
             file_size = format_size(len(data_all))
-            file_name = request.POST.get('filename', '')
+            file_name = request.POST.get('file_name', '')
         else:
             user_name = str(request.user)
             user_obj = User.objects.get(username=user_name)

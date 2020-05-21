@@ -48,7 +48,11 @@ class Client(requests.Session):
         response = response.json()
         return response
 
-    def upload(self, username, filepath, pwd=''):
+    def upload(self, username, filepath):
+        try:
+            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
+        except IndexError:
+            pwd = ''
         file = []
         file_all = b''
         size_all = os.path.getsize(filepath)
@@ -63,15 +67,15 @@ class Client(requests.Session):
                     a_base64 = base64.encodebytes(a).decode("utf-8")
                     file_all += a
                     size_finish += len(a)
-                    self.upload_process[filename] = size_finish / size_all
+                    self.upload_process[filepath] = size_finish / size_all
                     file.append(a_base64)
                 else:
                     f.close()
                     break
         data = {
             "ua": self.UA,
-            "username": username,
-            "filename": filename,
+            "user_name": username,
+            "file_name": filename,
             "type": filetype,
             "pwd": pwd,
             'length': len(file)
@@ -83,11 +87,12 @@ class Client(requests.Session):
             data[f'data{index}'] = d
         response = self.post(f'{self.SERVER_URL}/upload_file/', data)
         response = response.json()
-        self.upload_process.pop(filename)
+        self.upload_process.pop(filepath)
         if response['upload_flag']:
             return True
         else:
-            return response['error_info']
+            print(response['error_info'])
+            return False
 
     def download(self, filepath, savepath='e:\\'):
         response = self.get(
@@ -95,7 +100,7 @@ class Client(requests.Session):
         response = response.json()
         length = response['length']
         md5 = response['md5']
-        filename = response['filename']
+        filename = response['file_name']
         data = []
         for i in range(length):
             data.append(base64.b64decode(response[f'data{i}']))
@@ -122,10 +127,46 @@ class Client(requests.Session):
                 f.close()
             return {"upload_flag": True}
 
+    def delete(self, username, filepath):
+        try:
+            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
+        except IndexError:
+            pwd = ''
+        data = {
+            'ua': 'pyqt',
+            "user_name": username,
+            "file_path": filepath,
+            "pwd": pwd
+        }
+        response = self.post(f'{self.SERVER_URL}/delete_file/', data)
+        response = response.json()
+        if response['delete_flag']:
+            return True
+
+    def rename(self, username, filepath, newfilename):
+        oldfilename = filepath.rsplit('/', 1)[1]
+        try:
+            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
+        except IndexError:
+            pwd = ''
+        print(filepath)
+        print(pwd, username, oldfilename, newfilename)
+        data = {
+            'ua': 'pyqt',
+            'user_name': username,
+            'pwd': pwd,
+            'old_file_name': oldfilename,
+            'new_file_name': newfilename
+        }
+        response = self.post(f'{self.SERVER_URL}/rename_file/', data)
+        response = response.json()
+        if response['rename_flag']:
+            return True
+
 
 if __name__ == "__main__":
     client = Client()
     print(client.user_login('ddd', '1'))
     # print(client.fetch_all_file())
     # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
-    print(client.download('ddd/qt测试.txt'))
+    # print(client.download('ddd/qt测试.txt'))

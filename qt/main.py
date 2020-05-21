@@ -513,13 +513,16 @@ class Main_window(BasicWindow, Ui_MainWindow):
             btn {QPushButton} -- 操作文件的按钮
         """
         self.result = '0'
-
+        def cd_folder():
+            os.startfile(f'{SAVE_PATH}/DownLoads')
         def get_result(parameter):
-            # print('parameter:', parameter)
+            print('parameter:', parameter)
             self.result = parameter
-            # print(f'self.result: {self.result}')
-            if self.result == '1':
+            print(f'self.result: {self.result}')
+            if self.result == '1':  # 重命名、分享、删除
                 self.refresh_ui()
+            elif self.result == '2':  # 下载
+                NotificationWindow.success('下载成功', '查看文件', callback=cd_folder)
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
         if operation == '下载':
@@ -528,9 +531,9 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.download_thread[-1].start()
             self.download_thread[-1].trigger.connect(get_result)
         elif operation == '重命名':
-            rename_window = Rename_window(
+            self.rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
-            rename_window.show()
+            self.rename_window.show()
             self.rename_thread = newThread(mode='rename')
             self.rename_thread.start()
             self.rename_thread.trigger.connect(get_result)
@@ -580,13 +583,13 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """文件上传
         """
         self.result = '0'
-
         def get_result(parameter):
             # print('parameter:', parameter)
             self.result = parameter
             # print(f'self.result: {self.result}')
             if self.result == '1':
                 self.refresh_ui()
+                NotificationWindow.success('上传成功', '')
         self.upload_flag = False
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
@@ -657,9 +660,11 @@ class Main_window(BasicWindow, Ui_MainWindow):
             belong_folder {str} -- 父目录 (default: {None})
         """
         if not self.folder_name:  # 主界面刷新
+            print("刷新1")
             self.all_file = client.fetch_all_file()
             self.init_ui(self.all_file)
         else:  # 进入文件夹界面
+            print("刷新2")
             self.all_file = client.fetch_folder_file(
                 self.folder_name, self.belong_folder)
             self.init_ui(self.all_file)
@@ -701,7 +706,7 @@ class newThread(QThread):
             flag = client.download(
                 filepath=self.args[0], savepath=self.args[1])
             if flag['download_flag']:
-                self.trigger.emit(str(1))
+                self.trigger.emit(str(2))
         elif self.mode == 'upload':
             flag = client.upload(
                 username=self.args[0], filepath=self.args[1], pwd=self.args[2])
@@ -832,11 +837,13 @@ class Share_link_window(BasicWindow, Ui_ShareLinkWindow):
         # print(file_path)
         self.file_path = file_path  # 文件路径
         self.file_name = file_path.split('/')[-1]  # 文件名
-        self.pwd_label.setText(sharecode)
+        self.pwd_label.setText(sharecode)  # 分享码
         self.pwd_label.setTextInteractionFlags(
             Qt.TextSelectableByMouse)  # 设置标签可复制
-        self.link_label.setText(link)
-        self.link_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.link_label.setText(link)  # 分享链接
+        self.link_label.setFrame(False)
+        self.link_label.setFocusPolicy(Qt.NoFocus)
+        self.qr_label.setPixmap(QPixmap(QImage.fromData(base64.b64decode(qr_str))).scaled(self.qr_label.width(), self.qr_label.height()))
         self.closeButton.clicked.connect(self.doClose)
         self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.minButton.clicked.connect(self.showMinimized)

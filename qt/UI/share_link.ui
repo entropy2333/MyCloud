@@ -120,28 +120,6 @@
       </property>
      </widget>
     </widget>
-    <widget class="QLabel" name="link_label">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>50</y>
-       <width>231</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>幼圆</family>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-     </property>
-    </widget>
     <widget class="QLabel" name="pwd_label">
      <property name="geometry">
       <rect>
@@ -186,11 +164,21 @@
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+    <widget class="QLineEdit" name="link_label">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>50</y>
+       <width>231</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
     <zorder>widget_2</zorder>
     <zorder>pushButton_2</zorder>
-    <zorder>link_label</zorder>
     <zorder>pwd_label</zorder>
     <zorder>qr_label</zorder>
+    <zorder>link_label</zorder>
    </widget>
    <widget class="QWidget" name="widget_3" native="true">
     <property name="geometry">

@@ -129,8 +129,8 @@ class BasicWindow(QMainWindow):
         self.animation.start()
 
     def closeSession(self):
-        self.doClose()
         client.close()
+        self.doClose()
     
     def mousePressEvent(self, event):
         """鼠标左键按下变小手
@@ -173,7 +173,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
-        self.all_file = client.fetch_all_file() # 获取所有文件
 
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
@@ -187,7 +186,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             f'{ABSOLUTE_PATH}/img/exclamation.png').scaled(self.label_4.width(), self.label_4.height()))
         self.init_menu()    # 添加用户菜单
         self.doShow()   # 淡入
-        self.init_ui()  # 初始化界面
+        self.refresh_ui()  # 初始化界面
         # index(self.username)
         # widget美化
         Qss = 'QWidget#widget{background-color:%s;}' % TITLE_COLOR
@@ -241,7 +240,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.refresh_btn.setIcon(qtawesome.icon('fa.refresh'))  # 刷新按钮
         self.refresh_btn.setToolTip('刷新')
         self.refresh_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.refresh_btn.clicked.connect(self.btn_refresh)
+        self.refresh_btn.clicked.connect(self.refresh_ui)
         self.lineEdit.setPlaceholderText('搜索网盘文件')
         self.search_btn.setIcon(qtawesome.icon('fa.search'))  # 搜索按钮
         self.search_btn.setToolTip('搜索')
@@ -276,7 +275,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.menu.addAction('注销', self.logout)
         self.user_btn.setMenu(self.menu)
 
-    def init_ui(self):
+    def init_ui(self, all_file):
         """初始化界面
         """
         self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
@@ -287,16 +286,15 @@ class Main_window(BasicWindow, Ui_MainWindow):
             if btn != 'allfile_btn':
                 eval(f'self.{btn}').setStyleSheet(
                     '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
-        # self.all_file = client.fetch_all_file()
-        file_list = self.all_file['file_list']
-        folder_list = self.all_file['folder_list']
-        # print(self.all_file)
+        file_list = all_file['file_list']
+        folder_list = all_file['folder_list']
+        print(all_file)
         # 所有文件页面初始化
         if file_list or folder_list:
             self.is_file_exist['allfile_btn'] = True
         if self.is_file_exist['allfile_btn']:
             self.stackedWidget.setCurrentIndex(0)
-            self.file_table('allfile', self.all_file)
+            self.file_table('allfile', all_file)
         else:
             self.stackedWidget.setCurrentIndex(6)
         # 各类文件字典生成
@@ -340,6 +338,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         folder_list = file_dict['folder_list']
         file_num = len(file_dict['file_list'])
         file_list = file_dict['file_list']
+        eval(f'self.{file_type}_table').clear()  # 表格先清空
         eval(f'self.{file_type}_table').setColumnCount(7)
         eval(f'self.{file_type}_table').setRowCount(folder_num + file_num)
         eval(f'self.{file_type}_table').setHorizontalHeaderLabels(
@@ -472,8 +471,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         belong_folder = btn.objectName().split('%^')[0]
         folder_name = btn.objectName().split('%^')[1]
-        self.all_file = client.fetch_folder_file(folder_name, belong_folder)
-        self.init_ui()
+        self.refresh_ui(folder_name, belong_folder)
         print(f'父目录: {belong_folder} 文件夹名: {folder_name}')
 
     def file_preview(self, btn):
@@ -501,19 +499,17 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.delete_thread = newThread(
                 mode='delete', args=(self.user_name, file_path,))
             self.delete_thread.start()
-            self.delete_thread.trigger.connect(self.init_ui)
+            self.delete_thread.trigger.connect(self.refresh_ui)
         elif operation == '重命名':
             self.rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
             self.rename_window.show()
-            self.upload_thread = newThread(mode='refresh')
-            self.upload_thread.start()
-            self.upload_thread.trigger.connect(self.init_ui)
-
+            self.refresh_thread = newThread(mode='refresh')
+            self.refresh_thread.start()
+            self.refresh_thread.trigger.connect(self.refresh_ui)
         elif operation == '分享':
             self.share_window = Share_window(file_path)
             self.share_window.show()
-
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
@@ -558,10 +554,10 @@ class Main_window(BasicWindow, Ui_MainWindow):
             # func = MyThread(target=client.upload, args=(
             #     self.user_name, fileinfo[0],))
             # func.run()
-            self.refresh_thread = newThread(mode='upload', args=(
+            self.upload_thread = newThread(mode='upload', args=(
                 self.user_name, fileinfo[0],))
-            self.refresh_thread.start()
-            self.refresh_thread.trigger.connect(self.init_ui)
+            self.upload_thread.start()
+            self.upload_thread.trigger.connect(self.refresh_ui)
             # func.start()
 
     def btn_mkdir(self):
@@ -579,12 +575,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         print("前进")
 
-    def btn_refresh(self):
-        """刷新
-        """
-        self.init_ui()
-        print("刷新")
-
     def btn_search(self):
         """搜索网盘文件
         """
@@ -595,6 +585,20 @@ class Main_window(BasicWindow, Ui_MainWindow):
             pass
         else:
             self.stackedWidget.setCurrentIndex(7)
+
+    def refresh_ui(self, folder_name=None, belong_folder=None):
+        """动态刷新界面
+
+        Keyword Arguments:
+            folder_name {str}} -- 文件夹名 (default: {None})
+            belong_folder {str} -- 父目录 (default: {None})
+        """
+        if not folder_name:  # 主界面刷新
+            self.all_file = client.fetch_all_file()
+            self.init_ui(self.all_file)
+        else:  # 进入文件夹界面
+            self.all_file = client.fetch_folder_file(folder_name, belong_folder)
+            self.init_ui(self.all_file)
 
     def logout(self):
         """注销账户

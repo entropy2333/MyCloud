@@ -206,11 +206,15 @@ def rename_file(request):
     if request.method == 'GET':
         return redirect('/folder/?pdir=' + pwd)
     elif request.method == 'POST':
-        user = str(request.user)
-        user_id = User.objects.get(username=user).id
+        ua = request.POST.get('ua', '')
+        if ua == 'pyqt':
+            user_name = request.POST.get('user_name')
+        else:
+            user_name = str(request.user)
+        user_id = User.objects.get(username=user_name).id
         old_file_name = request.POST.get('old_file_name')
-        file_type = old_file_name.split('.')[-1]
-        new_file_name = request.POST.get('new_file_name')+'.'+file_type
+        file_suffix = old_file_name.split('.')[-1]
+        new_file_name = request.POST.get('new_file_name')+'.'+file_suffix
         pwd = request.POST.get('pwd', '')
         file_obj = models.FileInfo.objects.get(
             belong_folder=pwd, file_name=old_file_name, user_id=user_id)
@@ -228,7 +232,12 @@ def rename_file(request):
             share_obj[0].file_path = new_path
             share_obj[0].file_name = new_file_name
             share_obj[0].save()
-        return redirect('/folder/?pdir=' + pwd)
+        if ua == 'pyqt':
+            return JsonResponse({
+                'rename_flag': True
+            })
+        else:
+            return redirect('/folder/?pdir=' + pwd)
     # models.FileInfo.objects.get(file_path=file_path, user_id=user_id).delete()
 
 

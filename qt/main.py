@@ -4,10 +4,14 @@ from UI.Ui_transfer import Ui_TransferWindow
 from UI.Ui_register import Ui_RegisterWindow
 from UI.Ui_login import Ui_LoginWindow
 from UI.Ui_main_window import Ui_MainWindow
+from UI.Ui_rename_file import Ui_RenameWindow
+from UI.Ui_share import Ui_ShareWindow
+from UI.Ui_share_link import Ui_ShareLinkWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, pyqtSignal
 from client import *
 
 import threading
@@ -37,7 +41,7 @@ QPushButton:hover{
     border-radius:10px;
     color:%s;
 }
-#closeButton{
+# closeButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -46,12 +50,12 @@ QPushButton:hover{
     qproperty-text:"r";
     border-radius:10px;
 }
-#closeButton:hover{
+# closeButton:hover{
     color:white;
     border:none;
     background:red;
 }
-#minButton{
+# minButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -60,7 +64,7 @@ QPushButton:hover{
     qproperty-text:"0";
     border-radius:10px;
 }
-#minButton:hover{
+# minButton:hover{
     color:black;
     border:none;
     background:%s;
@@ -81,7 +85,7 @@ video_list = ['asf', 'wav', 'rm', 'mp4',
               'real', 'avi', 'mkv', 'webm', 'flv', 'mov']
 
 
-# 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口)
+# 经过基本美化的窗体(包括去标题栏，背景透明，淡入淡出，鼠标左键移动窗口，窗口阴影)
 class BasicWindow(QMainWindow):
     def __init__(self, parent=None):
         super(BasicWindow, self).__init__(parent)
@@ -93,6 +97,12 @@ class BasicWindow(QMainWindow):
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # 去掉窗口标题栏
         self.animation = QPropertyAnimation(self, b'windowOpacity')  # 窗口透明度动画类
         self.animation.setDuration(500)  # 持续时间0.5秒
+        # 添加阴影
+        effect = QGraphicsDropShadowEffect(self)
+        effect.setBlurRadius(12)
+        effect.setOffset(0, 0)
+        effect.setColor(Qt.gray)
+        self.setGraphicsEffect(effect)
 
     def doShow(self):
         """淡入
@@ -479,13 +489,22 @@ class Main_window(BasicWindow, Ui_MainWindow):
             func.setDaemon(True)
             func.start()
         if operation == '删除':
-            client.delete(username=self.user_name, filepath=file_path)
-            # func = threading.Thread(target=client.download,
-            #                         args=(file_path, SAVE_PATH,))
-            # func.setDaemon(True)
-            # func.start()
-        if operation == '重命名':
-            pass
+            self.delete_thread = newThread(
+                mode='delete', args=(self.user_name, file_path,))
+            self.delete_thread.start()
+            self.delete_thread.trigger.connect(self.init_ui)
+        elif operation == '重命名':
+            self.rename_window = Rename_window(
+                file_path=file_path, user_name=self.user_name)
+            self.rename_window.show()
+            self.upload_thread = newThread(mode='refresh')
+            self.upload_thread.start()
+            self.upload_thread.trigger.connect(self.init_ui)
+
+        elif operation == '分享':
+            self.share_window = Share_window(file_path)
+            self.share_window.show()
+
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
@@ -514,21 +533,27 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.transfer_window = Transfer_window()
             self.is_open_tw = True
             self.transfer_window.show()
-            self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
         else:
             self.warn_dialog = Warn_Dialog()
-            # self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
+            self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
             self.warn_dialog.show()
 
     def btn_upload(self):
         """文件上传
         """
+
+        self.upload_flag = False
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
-        func = threading.Thread(target=client.upload,
-                                args=(self.user_name, fileinfo[0],))
-        func.setDaemon(True)
-        func.start()
+        if os.path.exists(fileinfo[0]):
+            # func = MyThread(target=client.upload, args=(
+            #     self.user_name, fileinfo[0],))
+            # func.run()
+            self.refresh_thread = newThread(mode='upload', args=(
+                self.user_name, fileinfo[0],))
+            self.refresh_thread.start()
+            self.refresh_thread.trigger.connect(self.init_ui)
+            # func.start()
 
     def btn_mkdir(self):
         """新建文件夹
@@ -570,6 +595,175 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.doClose()
 
 
+class newThread(QThread):
+    '''线程类'''
+    trigger = pyqtSignal(str)
+
+    def __init__(self, mode, args=()):
+        QThread.__init__(self)
+        self.mode = mode
+        self.args = args
+
+    def run(self):
+        if self.mode == 'refresh':
+            while True:
+                try:
+                    if login_window.main_window.rename_window.rename_flag:
+                        self.trigger.emit(str(1))
+                        login_window.main_window.rename_window.rename_flag = False
+                        break
+                except:
+                    continue
+        elif self.mode == 'upload':
+            flag = client.upload(username=self.args[0], filepath=self.args[1])
+            if flag:
+                self.trigger.emit(str(1))
+        elif self.mode == 'delete':
+            flag = client.delete(username=self.args[0], filepath=self.args[1])
+            if flag:
+                self.trigger.emit(str(1))
+
+
+# 文件重命名窗口
+class Rename_window(BasicWindow, Ui_RenameWindow):
+    def __init__(self, user_name, file_path, parent=None):
+        super(Rename_window, self).__init__(parent)
+        self.setupUi(self)
+        # print(file_path)
+        self.user_name = user_name
+        self.file_path = file_path
+        self.rename_flag = False
+        name = file_path.split('/')[-1].split('.')[0]
+        try:
+            self.mime = '.' + file_path.rsplit('.', 1)[1]
+        except:  # 文件夹无后缀
+            self.mime = ''
+            self.folder = ''
+        self.lineEdit.setText(name)
+        self.label_2.setText(self.mime)
+        self.label.setStyleSheet(
+            'QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
+        self.label_2.setStyleSheet(
+            'QLabel{background-color:%s; border-radius:6px}' % FUNC_COLOR)
+        self.pushButton_2.clicked.connect(self.btn_rename)
+        self.pushButton_2.setCursor(QCursor(Qt.PointingHandCursor))
+        self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minButton.clicked.connect(self.showMinimized)
+        self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
+
+        # widget美化
+        Qss = 'QWidget#widget{background-color:%s;}' % BACKGROUND_COLOR
+        Qss += 'QWidget#widget_3{background-color:%s;}' % TITLE_COLOR
+        # 重命名按钮
+        Qss += 'QPushButton#pushButton_2{background-color:%s; border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color:%s; border-radius:5px;}' % LIGHT_FUNC_COLOR
+        Qss += GLOBAL_BUTTON
+        self.setStyleSheet(Qss)  # 边框部分qss重载
+
+    def btn_rename(self):
+        """重命名
+        """
+        file_path = self.file_path
+        new_file_name = self.lineEdit.text()
+        self.rename_flag = client.rename(username=self.user_name,
+                                         filepath=self.file_path, newfilename=new_file_name)
+        print(f'重命名完成： {new_file_name}')
+
+
+# 文件分享窗口
+class Share_window(BasicWindow, Ui_ShareWindow):
+    def __init__(self, file_path, parent=None):
+        super(Share_window, self).__init__(parent)
+        self.setupUi(self)
+        # print(file_path)
+        self.file_path = file_path  # 文件路径
+        self.file_name = file_path.split('/')[-1]  # 文件名
+        self.label_5.setText(self.file_name)
+        self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minButton.clicked.connect(self.showMinimized)
+        self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.pushButton_2.clicked.connect(self.btn_share)
+        self.radioButton_2.setChecked(True)
+
+        # widget美化
+        Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
+        Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
+        Qss += 'QWidget#widget_2{background-color: %s;}' % FUNC_COLOR
+        # 生成分享链接按钮
+        Qss += 'QPushButton#pushButton_2{background-color: %s; border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s; border-radius:5px;}' % LIGHT_FUNC_COLOR
+        Qss += 'QLabel{background-color:%s;}' % FUNC_COLOR
+        Qss += '#label_5{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_6{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_7{background-color:%s; border-radius:0}' % TITLE_COLOR
+        Qss += GLOBAL_BUTTON
+        self.setStyleSheet(Qss)  # 边框部分qss重载
+
+    def btn_share(self):
+        """生成分享链接
+        """
+        password = self.lineEdit.text()
+        if not password:
+            self.warn_dialog = Warn_Dialog()
+            self.warn_dialog.label.setText('请输入分享密码！')
+            self.warn_dialog.show()
+            return
+        if self.radioButton_2.isChecked():
+            share_time = '7天'
+        elif self.radioButton_3.isChecked():
+            share_time = '30天'
+        elif self.radioButton_4.isChecked():
+            share_time = '无期限'
+        self.share_link_window = Share_link_window(
+            self.file_path, password, share_time)
+        self.share_link_window.show()
+        self.doClose()
+
+
+# 分享链接窗口
+class Share_link_window(BasicWindow, Ui_ShareLinkWindow):
+    def __init__(self, file_path, password, share_time, parent=None):
+        super(Share_link_window, self).__init__(parent)
+        self.setupUi(self)
+        # print(file_path)
+        self.file_path = file_path  # 文件路径
+        self.file_name = file_path.split('/')[-1]  # 文件名
+        self.pwd_label.setText(password)
+        self.pwd_label.setTextInteractionFlags(
+            Qt.TextSelectableByMouse)  # 设置标签可复制
+        self.link_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.minButton.clicked.connect(self.showMinimized)
+        self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
+        self.pushButton_2.clicked.connect(self.btn_copy)
+
+        # widget美化
+        Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
+        Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
+        Qss += 'QWidget#widget_2{background-color: %s;}' % FUNC_COLOR
+        # 复制分享链接按钮
+        Qss += 'QPushButton#pushButton_2{background-color: %s; border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s; border-radius:5px;}' % LIGHT_FUNC_COLOR
+        Qss += 'QLabel{background-color:%s;}' % FUNC_COLOR
+        Qss += '#link_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#pwd_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#qr_label{background-color:%s; border-radius:0}' % GRAY_COLOR
+        Qss += '#label_7{background-color:%s; border-radius:0}' % TITLE_COLOR
+        Qss += GLOBAL_BUTTON
+        self.setStyleSheet(Qss)  # 边框部分qss重载
+
+    def btn_copy(self):
+        """复制分享链接
+        """
+        print(self.link_label.text())
+
+
 # 登陆窗口
 class Login_window(BasicWindow, Ui_LoginWindow):
     def __init__(self, parent=None):
@@ -588,12 +782,12 @@ class Login_window(BasicWindow, Ui_LoginWindow):
         Qss += 'QWidget#widget_2{background-color: %s;}' % TITLE_COLOR
         # 注册按钮
         Qss += 'QPushButton#pushButton_2{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_2:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color: %s;border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s;border-radius:5px;}' % LIGHT_FUNC_COLOR
         # 登陆按钮
         Qss += 'QPushButton#pushButton{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton:hover{background-color: %s;border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton:pressed{background-color: %s;border-radius:5px;}' % LIGHT_FUNC_COLOR
         Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss)  # 边框部分qss重载
 
@@ -683,9 +877,9 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
         Qss = 'QWidget#widget{background-color: %s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_3{background-color: %s;}' % TITLE_COLOR
         # 注册按钮
-        Qss += 'QPushButton#pushButton_2{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_2:hover{background-color: %s;border-radius:5px;}' % TITLE_COLOR
-        Qss += 'QPushButton#pushButton_2:pressed{background-color: %s;border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2{background-color:%s; border-radius:5px;}' % TITLE_COLOR
+        Qss += 'QPushButton#pushButton_2:hover{background-color:%s; border-radius:5px; color:black}' % FUNC_COLOR
+        Qss += 'QPushButton#pushButton_2:pressed{background-color:%s; border-radius:5px;}' % LIGHT_FUNC_COLOR
         Qss += GLOBAL_BUTTON
         self.setStyleSheet(Qss)  # 边框部分qss重载
 
@@ -698,11 +892,15 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
         self.doShow()
 
     def btn_register(self):
-        """登陆按钮事件
+        """注册按钮事件
         """
-        self.login_window = Login_window()
-        self.login_window.show()
-        self.close()
+        user_name = self.lineEdit.text()  # 获取用户输入的用户名
+        password = self.lineEdit_2.text()  # 获取用户输入的密码
+        repassword = self.lineEdit_3.text()  # 获取用户重复输入的密码
+        if client.user_register(user_name, password, repassword):
+            self.login_window = Login_window()
+            self.login_window.show()
+            self.close()
 
 
 # 传输列表界面

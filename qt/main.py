@@ -172,8 +172,6 @@ class Main_window(BasicWindow, Ui_MainWindow):
 
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
-        self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
-                              'music_btn': False, 'video_btn': False, 'other_btn': False}  # 判断各类型文件是否存在
         self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square',
                             '下载': 'fa.cloud-download', '分享': 'fa.share-alt-square'}  # 文件操作及对应图标
         self.logo.setPixmap(QPixmap(
@@ -276,6 +274,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def init_ui(self):
         """初始化界面
         """
+        self.is_file_exist = {'allfile_btn': False, 'doc_btn': False, 'img_btn': False,
+                              'music_btn': False, 'video_btn': False, 'other_btn': False}  # 判断各类型文件是否存在
         self.allfile_btn.setStyleSheet(
             '#allfile_btn{background-color:%s; color:%s; border-left:6px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
         for btn in self.left_column:  # 其他按钮全部恢复

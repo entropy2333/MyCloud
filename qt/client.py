@@ -48,11 +48,7 @@ class Client(requests.Session):
         response = response.json()
         return response
 
-    def upload(self, username, filepath):
-        try:
-            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
-        except IndexError:
-            pwd = ''
+    def upload(self, username, filepath, pwd):
         file = []
         file_all = b''
         size_all = os.path.getsize(filepath)
@@ -162,6 +158,20 @@ class Client(requests.Session):
         response = response.json()
         if response['rename_flag']:
             return True
+
+    def fetch_folder_file(self, folder_name, belong_folder):
+        if not belong_folder:
+            pdir = folder_name + '/'
+        else:
+            pdir = belong_folder + '/' + folder_name + '/'
+        params = {
+            'ua': self.UA,
+            'pdir': pdir
+        }
+        response = self.get(f'{self.SERVER_URL}/folder/', params=params)
+        response = response.json()
+        print(response)
+        return response
 
 
 if __name__ == "__main__":

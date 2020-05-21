@@ -32,47 +32,13 @@ LIGHT_FUNC_COLOR = '#FFFFF0'  # 到功能栏颜色的过渡色
 HOVER_COLOR = '#00BFFF'  # 按钮点击时的文字颜色
 GRAY_COLOR = '#EEF0F6'  # 万能的灰色
 GLOBAL_BUTTON = """
-QPushButton{
-    border:none;
-    background:%s
-}
-QPushButton:hover{
-    background:%s;
-    border-radius:10px;
-    color:%s;
-}
-# closeButton{
-    background:%s;
-    max-width:36px;
-    max-height:36px;
-    font-size:12px;
-    font-family:"Webdings";
-    qproperty-text:"r";
-    border-radius:10px;
-}
-# closeButton:hover{
-    color:white;
-    border:none;
-    background:red;
-}
-# minButton{
-    background:%s;
-    max-width:36px;
-    max-height:36px;
-    font-family:"Webdings";
-    font-size: 12px;
-    qproperty-text:"0";
-    border-radius:10px;
-}
-# minButton:hover{
-    color:black;
-    border:none;
-    background:%s;
-}
-QTableWidget{
-    background:%s;
-    border:none;
-}
+QPushButton{border:none;background:%s;}
+QPushButton:hover{background:%s;border-radius:10px;color:%s;}
+# closeButton{background:%s;max-width:36px;max-height:36px;font-size:12px;font-family:"Webdings";qproperty-text:"r";border-radius:10px;}
+# closeButton:hover{color:white;border:none;background:red;}
+# minButton{background:%s;max-width:36px;max-height:36px;font-family:"Webdings";font-size: 12px;qproperty-text:"0";border-radius:10px;}
+# minButton:hover{color:black;border:none;background:%s;}
+QTableWidget{background:%s;border:none;}
 """ % (FUNC_COLOR, GRAY_COLOR, HOVER_COLOR, TITLE_COLOR, TITLE_COLOR, BACKGROUND_COLOR,  BACKGROUND_COLOR)
 
 # 文件类型判断

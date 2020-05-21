@@ -189,6 +189,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.file_path_node = ListNode('root')  # 当前路径
         self.belong_folder = ''
         self.folder_name = ''
+        self.download_thread = []
+        self.upload_thread = []
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square',
@@ -521,25 +523,25 @@ class Main_window(BasicWindow, Ui_MainWindow):
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
         if operation == '下载':
-            download_thread = newThread(
-                mode='download', args=(file_path, SAVE_PATH,))
-            download_thread.start()
-            download_thread.trigger.connect(get_result)
+            self.download_thread.append(newThread(
+                mode='download', args=(file_path, SAVE_PATH,)))
+            self.download_thread[-1].start()
+            self.download_thread[-1].trigger.connect(get_result)
         elif operation == '重命名':
             rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
             rename_window.show()
-            rename_thread = newThread(mode='rename')
-            rename_thread.start()
-            rename_thread.trigger.connect(get_result)
+            self.rename_thread = newThread(mode='rename')
+            self.rename_thread.start()
+            self.rename_thread.trigger.connect(get_result)
         elif operation == '分享':
             self.share_window = Share_window(self.user_name, file_path)
             self.share_window.show()
         elif operation == '删除':
-            delete_thread = newThread(
+            self.delete_thread = newThread(
                 mode='delete', args=(self.user_name, file_path,))
-            delete_thread.start()
-            delete_thread.trigger.connect(get_result)
+            self.delete_thread.start()
+            self.delete_thread.trigger.connect(get_result)
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
@@ -589,10 +591,11 @@ class Main_window(BasicWindow, Ui_MainWindow):
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
         if os.path.exists(fileinfo[0]):
-            upload_thread = newThread(mode='upload', args=(
-                self.user_name, fileinfo[0], f'{self.belong_folder}{self.folder_name}/'))
-            upload_thread.start()
-            upload_thread.trigger.connect(get_result)
+            print(f'{self.belong_folder}{self.folder_name}/')
+            self.upload_thread.append(newThread(mode='upload', args=(
+                self.user_name, fileinfo[0], f'{self.belong_folder}{self.folder_name}')))
+            self.upload_thread[-1].start()
+            self.upload_thread[-1].trigger.connect(get_result)
             # func.start()
 
     def btn_mkdir(self):
@@ -678,6 +681,12 @@ class newThread(QThread):
         self.mode = mode
         self.args = args
 
+    def __del__(self):
+        if self.mode == 'download':
+            client.download_thread.remove(self)
+        elif self.mode == 'upload':
+            client.upload_thread.remove(self)
+
     def run(self):
         if self.mode == 'rename':
             while True:
@@ -696,6 +705,7 @@ class newThread(QThread):
         elif self.mode == 'upload':
             flag = client.upload(
                 username=self.args[0], filepath=self.args[1], pwd=self.args[2])
+            print(flag)
             if flag:
                 self.trigger.emit(str(1))
         elif self.mode == 'delete':

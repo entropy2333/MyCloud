@@ -128,6 +128,10 @@ class BasicWindow(QMainWindow):
         self.animation.setEndValue(0)
         self.animation.start()
 
+    def closeSession(self):
+        self.doClose()
+        client.close()
+    
     def mousePressEvent(self, event):
         """鼠标左键按下变小手
 
@@ -169,6 +173,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
+        self.all_file = client.fetch_all_file() # 获取所有文件
 
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
@@ -209,7 +214,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         # 所有按钮的初始化
         self.minButton.clicked.connect(self.showMinimized)
         self.minButton.setCursor(QCursor(Qt.PointingHandCursor))
-        self.closeButton.clicked.connect(self.doClose)
+        self.closeButton.clicked.connect(self.closeSession)
         self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.user_btn.setText(f'{self.user_name}')   # 用户名按钮
         self.user_btn.setGeometry(QtCore.QRect(970, 10, 100, 31))
@@ -282,7 +287,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             if btn != 'allfile_btn':
                 eval(f'self.{btn}').setStyleSheet(
                     '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
-        self.all_file = client.fetch_all_file()
+        # self.all_file = client.fetch_all_file()
         file_list = self.all_file['file_list']
         folder_list = self.all_file['folder_list']
         # print(self.all_file)
@@ -467,6 +472,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         belong_folder = btn.objectName().split('%^')[0]
         folder_name = btn.objectName().split('%^')[1]
+        self.all_file = client.fetch_folder_file(folder_name, belong_folder)
+        self.init_ui()
         print(f'父目录: {belong_folder} 文件夹名: {folder_name}')
 
     def file_preview(self, btn):
@@ -594,7 +601,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         self.login_window = Login_window()
         self.login_window.show()
-        self.doClose()
+        self.closeSession()
 
 
 class newThread(QThread):

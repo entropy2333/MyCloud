@@ -358,7 +358,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
 
         for i, folder_ in enumerate(folder_list):
             new = QPushButton(self.stackedWidget)
-            objname = f"{folder_['folder_name']}"  # 按钮名称设置
+            objname = f"{folder_['belong_folder']}%^{folder_['folder_name']}"  # 按钮名称设置
             new.setObjectName(objname)
             new.setStyleSheet("""
                 QPushButton{
@@ -464,7 +464,9 @@ class Main_window(BasicWindow, Ui_MainWindow):
         Arguments:
             btn {QPushButton} -- 打开文件夹的按钮
         """
-        print(f'打开文件夹: {btn.objectName()}')
+        belong_folder = btn.objectName().split('%^')[0]
+        folder_name = btn.objectName().split('%^')[1]
+        print(f'父目录: {belong_folder} 文件夹名: {folder_name}')
 
     def file_preview(self, btn):
         """预览文件

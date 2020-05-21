@@ -18,8 +18,8 @@ CREATE DATABASE cloud;
 
 ```sh
 python manage.py makemigrations --empty index
-python manage.py makemigrations  
-python manage.py migrate  
+python manage.py makemigrations
+python manage.py migrate
 ```
 
 ### Modify Encode
@@ -35,5 +35,5 @@ ALTER TABLE index_folderinfo CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_
 ### Start Server
 
 ```sh
-python manage.py runserver 0.0.0.0:8000  
+python manage.py runserver 0.0.0.0:9999
 ```

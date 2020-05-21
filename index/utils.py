@@ -4,10 +4,12 @@ import base64
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 def judge_filepath(file_type):
     img_list = ['bmp', 'jpeg', 'jpg', 'png', 'tif', 'gif', 'pcx', 'tga', 'exif', 'fpx', 'svg', 'psd', 'cdr', 'pcd', 'dxf',
                 'ufo', 'eps', 'ai', 'raw', 'WMF', 'webp']
-    doc_list = ['txt', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'lrc', 'wps', 'zip', 'rar', '7z', 'torrent', 'pdf']
+    doc_list = ['txt', 'doc', 'xls', 'ppt', 'docx', 'xlsx',
+                'pptx', 'lrc', 'wps', 'zip', 'rar', '7z', 'torrent', 'pdf']
     video_list = ['cd', 'ogg', 'mp3', 'asf', 'wma', 'wav', 'mp3pro', 'rm', 'mp4', 'real', 'ape', 'module', 'midi',
                   'vqf']
     procedure_list = ['exe', 'py', 'java', 'class', 'pyc', 'app', 'apk', 'bat']
@@ -39,10 +41,14 @@ def format_size(old_size):
 
 
 def gen_qrcode(user_name, file_name, pwd):
-    user_name_b64 = base64.b64encode(user_name.encode()).decode().replace('/', '-').replace('+', '_')
-    file_name_b64 = base64.b64encode(file_name.encode()).decode().replace('/', '-').replace('+', '_')
-    pwd_b64 = base64.b64encode(pwd.encode()).decode().replace('/', '-').replace('+', '_')
-    share_url = 'http://39.101.164.48:8000/download_share_file?user_name=' + user_name_b64 + '&file_name=' + file_name_b64 + '&pwd=' + pwd_b64
+    user_name_b64 = base64.b64encode(
+        user_name.encode()).decode().replace('/', '-').replace('+', '_')
+    file_name_b64 = base64.b64encode(
+        file_name.encode()).decode().replace('/', '-').replace('+', '_')
+    pwd_b64 = base64.b64encode(pwd.encode()).decode().replace(
+        '/', '-').replace('+', '_')
+    share_url = 'http://127.0.0.1:9999/download_share_file?user_name=' + \
+        user_name_b64 + '&file_name=' + file_name_b64 + '&pwd=' + pwd_b64
     qr = qrcode.QRCode(
         version=2,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -54,9 +60,9 @@ def gen_qrcode(user_name, file_name, pwd):
 
     img = qr.make_image()
     # save_path = '1.png'
-    save_path = os.path.join(BASE_DIR, 'static', user_name, 'qr', file_name + '.png')
+    save_path = os.path.join(
+        BASE_DIR, 'static', user_name, 'qr', file_name + '.png')
     img.save(save_path)
-    with open(save_path,"rb") as f:
+    with open(save_path, "rb") as f:
         img_str = base64.b64encode(f.read())
     return share_url, img_str.decode()
-

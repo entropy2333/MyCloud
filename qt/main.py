@@ -289,6 +289,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         file_list = all_file['file_list']
         folder_list = all_file['folder_list']
         print(all_file)
+        print('='*100)
         # 所有文件页面初始化
         if file_list or folder_list:
             self.is_file_exist['allfile_btn'] = True
@@ -488,6 +489,13 @@ class Main_window(BasicWindow, Ui_MainWindow):
         Arguments:
             btn {QPushButton} -- 操作文件的按钮
         """
+        self.result = '0'
+        def get_result(parameter):
+            # print('parameter:', parameter)
+            self.result = parameter
+            # print(f'self.result: {self.result}')
+            if self.result == '1':
+                self.refresh_ui()
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
         if operation == '下载':
@@ -499,14 +507,14 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.delete_thread = newThread(
                 mode='delete', args=(self.user_name, file_path,))
             self.delete_thread.start()
-            self.delete_thread.trigger.connect(self.refresh_ui)
+            self.delete_thread.trigger.connect(get_result)
         elif operation == '重命名':
             self.rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
             self.rename_window.show()
             self.refresh_thread = newThread(mode='refresh')
             self.refresh_thread.start()
-            self.refresh_thread.trigger.connect(self.refresh_ui)
+            self.refresh_thread.trigger.connect(get_result)
         elif operation == '分享':
             self.share_window = Share_window(file_path)
             self.share_window.show()
@@ -538,6 +546,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.transfer_window = Transfer_window()
             self.is_open_tw = True
             self.transfer_window.show()
+            self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
         else:
             self.warn_dialog = Warn_Dialog()
             self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
@@ -546,7 +555,13 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_upload(self):
         """文件上传
         """
-
+        self.result = '0'
+        def get_result(parameter):
+            # print('parameter:', parameter)
+            self.result = parameter
+            # print(f'self.result: {self.result}')
+            if self.result == '1':
+                self.refresh_ui()
         self.upload_flag = False
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
@@ -557,7 +572,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.upload_thread = newThread(mode='upload', args=(
                 self.user_name, fileinfo[0],))
             self.upload_thread.start()
-            self.upload_thread.trigger.connect(self.refresh_ui)
+            self.upload_thread.trigger.connect(get_result)
             # func.start()
 
     def btn_mkdir(self):
@@ -683,6 +698,7 @@ class Rename_window(BasicWindow, Ui_RenameWindow):
         self.rename_flag = client.rename(username=self.user_name,
                                          filepath=self.file_path, newfilename=new_file_name)
         print(f'重命名完成： {new_file_name}')
+        self.doClose()
 
 
 # 文件分享窗口

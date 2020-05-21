@@ -14,6 +14,7 @@ import base64
 from PyQt5.QtCore import Qt, QRectF, QSize, pyqtSignal, QTimer
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QPainterPath,\
     QColor
+from PyQt5.QtWidgets import QApplication, QPushButton
 from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout,\
     QGridLayout, QSpacerItem, QSizePolicy, QGraphicsDropShadowEffect,\
     QListWidget, QListWidgetItem
@@ -76,7 +77,7 @@ class NotificationItem(QWidget):
         self.labelTitle = QLabel(title, self)
         font = self.labelTitle.font()
         font.setBold(True)
-        font.setPixelSize(22)
+        font.setPixelSize(20)
         self.labelTitle.setFont(font)
 
         # 关闭按钮
@@ -85,10 +86,8 @@ class NotificationItem(QWidget):
 
         # 消息内容
         self.labelMessage = QLabel(
-            message, self, cursor=Qt.PointingHandCursor, wordWrap=True, alignment=Qt.AlignLeft | Qt.AlignTop)
-        font = self.labelMessage.font()
-        font.setPixelSize(20)
-        self.labelMessage.setFont(font)
+            message, self, cursor=Qt.PointingHandCursor, wordWrap=True, alignment=Qt.AlignRight | Qt.AlignTop)
+        self.labelMessage.setStyleSheet('QLabel{font-size:18; color:#00BFFF; text-decoration:underline}')
         self.labelMessage.adjustSize()
 
         # 添加到布局

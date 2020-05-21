@@ -1,5 +1,6 @@
 from utils.FramelessDialog import *
 from utils.VerificationCode import WidgetCode
+from utils.Notification import *
 from UI.Ui_transfer import Ui_TransferWindow
 from UI.Ui_register import Ui_RegisterWindow
 from UI.Ui_login import Ui_LoginWindow
@@ -165,7 +166,19 @@ class BasicWindow(QMainWindow):
             event.accept()
 
 
+# 双向链表，存放路径信息
+class ListNode:
+    def __init__(self, x):
+        self.val = x
+        self.next = None
+        self.prev = None
+
+    def remove(self):
+        self.prev.next = self.next
+
 # 主窗口
+
+
 class Main_window(BasicWindow, Ui_MainWindow):
     def __init__(self, user_name, parent=None):
         super(Main_window, self).__init__(parent)
@@ -173,7 +186,9 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
-        self.foldername = ''
+        self.file_path_node = ListNode('root')  # 当前路径
+        self.belong_folder = ''
+        self.folder_name = ''
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square',
@@ -288,7 +303,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
                     '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
         file_list = all_file['file_list']
         folder_list = all_file['folder_list']
-        print(all_file)
+        # print(all_file)
+        # print('='*100)
         # 所有文件页面初始化
         if file_list or folder_list:
             self.is_file_exist['allfile_btn'] = True
@@ -470,11 +486,15 @@ class Main_window(BasicWindow, Ui_MainWindow):
         Arguments:
             btn {QPushButton} -- 打开文件夹的按钮
         """
-        belong_folder = btn.objectName().split('%^')[0]
-        folder_name = btn.objectName().split('%^')[1]
-        self.foldername += folder_name + '/'
-        self.refresh_ui(folder_name, belong_folder)
-        print(f'父目录: {belong_folder} 文件夹名: {folder_name}')
+        self.belong_folder = btn.objectName().split('%^')[0]
+        self.folder_name = btn.objectName().split('%^')[1]
+        self.file_path_node.next = ListNode(btn.objectName())
+        temp = self.file_path_node
+        self.file_path_node = self.file_path_node.next
+        self.file_path_node.prev = temp
+        print(self.file_path_node.val)
+        self.refresh_ui()
+        print(f'父目录: {self.belong_folder} 文件夹名: {self.folder_name}')
 
     def file_preview(self, btn):
         """预览文件
@@ -490,28 +510,36 @@ class Main_window(BasicWindow, Ui_MainWindow):
         Arguments:
             btn {QPushButton} -- 操作文件的按钮
         """
+        self.result = '0'
+
+        def get_result(parameter):
+            # print('parameter:', parameter)
+            self.result = parameter
+            # print(f'self.result: {self.result}')
+            if self.result == '1':
+                self.refresh_ui()
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
         if operation == '下载':
-            func = threading.Thread(target=client.download,
-                                    args=(file_path, SAVE_PATH,))
-            func.setDaemon(True)
-            func.start()
-        if operation == '删除':
-            self.delete_thread = newThread(
-                mode='delete', args=(self.user_name, file_path,))
-            self.delete_thread.start()
-            self.delete_thread.trigger.connect(self.refresh_ui)
+            download_thread = newThread(
+                mode='download', args=(file_path, SAVE_PATH,))
+            download_thread.start()
+            download_thread.trigger.connect(get_result)
         elif operation == '重命名':
-            self.rename_window = Rename_window(
+            rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
-            self.rename_window.show()
-            self.refresh_thread = newThread(mode='refresh')
-            self.refresh_thread.start()
-            self.refresh_thread.trigger.connect(self.refresh_ui)
+            rename_window.show()
+            rename_thread = newThread(mode='rename')
+            rename_thread.start()
+            rename_thread.trigger.connect(get_result)
         elif operation == '分享':
-            self.share_window = Share_window(file_path)
+            self.share_window = Share_window(self.user_name, file_path)
             self.share_window.show()
+        elif operation == '删除':
+            delete_thread = newThread(
+                mode='delete', args=(self.user_name, file_path,))
+            delete_thread.start()
+            delete_thread.trigger.connect(get_result)
         print(f'{operation}: {file_path}')
 
     def btn_left(self, left_btn):
@@ -540,6 +568,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.transfer_window = Transfer_window()
             self.is_open_tw = True
             self.transfer_window.show()
+            self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
         else:
             self.warn_dialog = Warn_Dialog()
             self.warn_dialog.label.setText('请勿同时打开多个传输列表！')
@@ -548,18 +577,22 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_upload(self):
         """文件上传
         """
+        self.result = '0'
 
+        def get_result(parameter):
+            # print('parameter:', parameter)
+            self.result = parameter
+            # print(f'self.result: {self.result}')
+            if self.result == '1':
+                self.refresh_ui()
         self.upload_flag = False
         fileinfo = self.uploadselect.getOpenFileName(
             self, 'OpenFile', "c:/")
         if os.path.exists(fileinfo[0]):
-            # func = MyThread(target=client.upload, args=(
-            #     self.user_name, fileinfo[0],))
-            # func.run()
-            self.upload_thread = newThread(mode='upload', args=(
-                self.user_name, fileinfo[0], self.foldername))
-            self.upload_thread.start()
-            self.upload_thread.trigger.connect(self.refresh_ui)
+            upload_thread = newThread(mode='upload', args=(
+                self.user_name, fileinfo[0], f'{self.belong_folder}{self.folder_name}/'))
+            upload_thread.start()
+            upload_thread.trigger.connect(get_result)
             # func.start()
 
     def btn_mkdir(self):
@@ -570,12 +603,37 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_back(self):
         """回退
         """
-        print("回退")
+        if self.file_path_node.prev:
+            if self.file_path_node.prev.val == 'root':
+                self.folder_name = ''
+                self.refresh_ui()
+            else:
+                self.belong_folder = self.file_path_node.prev.val.split('%^')[
+                    0]
+                self.folder_name = self.file_path_node.prev.val.split('%^')[1]
+                # print(f'b:{self.belong_folder}f:{self.folder_name}')
+                self.refresh_ui()
+            self.file_path_node = self.file_path_node.prev
+        # else:
+        #     print('到底了')
+        # print("回退")
 
     def btn_forward(self):
         """前进
         """
-        print("前进")
+        if self.file_path_node.next:
+            if self.file_path_node.next.val == 'root':
+                self.folder_name = ''
+                self.refresh_ui()
+            else:
+                self.belong_folder = self.file_path_node.next.val.split('%^')[
+                    0]
+                self.folder_name = self.file_path_node.next.val.split('%^')[1]
+                self.refresh_ui()
+            self.file_path_node = self.file_path_node.next
+        # else:
+        #     print('到底了')
+        # print("前进")
 
     def btn_search(self):
         """搜索网盘文件
@@ -588,19 +646,19 @@ class Main_window(BasicWindow, Ui_MainWindow):
         else:
             self.stackedWidget.setCurrentIndex(7)
 
-    def refresh_ui(self, folder_name=None, belong_folder=None):
+    def refresh_ui(self):
         """动态刷新界面
 
         Keyword Arguments:
             folder_name {str}} -- 文件夹名 (default: {None})
             belong_folder {str} -- 父目录 (default: {None})
         """
-        if folder_name != None:  # 主界面刷新
+        if not self.folder_name:  # 主界面刷新
             self.all_file = client.fetch_all_file()
             self.init_ui(self.all_file)
         else:  # 进入文件夹界面
             self.all_file = client.fetch_folder_file(
-                folder_name, belong_folder)
+                self.folder_name, self.belong_folder)
             self.init_ui(self.all_file)
 
     def logout(self):
@@ -621,7 +679,7 @@ class newThread(QThread):
         self.args = args
 
     def run(self):
-        if self.mode == 'refresh':
+        if self.mode == 'rename':
             while True:
                 try:
                     if login_window.main_window.rename_window.rename_flag:
@@ -630,6 +688,11 @@ class newThread(QThread):
                         break
                 except:
                     continue
+        elif self.mode == 'download':
+            flag = client.download(
+                filepath=self.args[0], savepath=self.args[1])
+            if flag['download_flag']:
+                self.trigger.emit(str(1))
         elif self.mode == 'upload':
             flag = client.upload(
                 username=self.args[0], filepath=self.args[1], pwd=self.args[2])
@@ -687,14 +750,16 @@ class Rename_window(BasicWindow, Ui_RenameWindow):
         self.rename_flag = client.rename(username=self.user_name,
                                          filepath=self.file_path, newfilename=new_file_name)
         print(f'重命名完成： {new_file_name}')
+        self.doClose()
 
 
 # 文件分享窗口
 class Share_window(BasicWindow, Ui_ShareWindow):
-    def __init__(self, file_path, parent=None):
+    def __init__(self, user_name, file_path, parent=None):
         super(Share_window, self).__init__(parent)
         self.setupUi(self)
         # print(file_path)
+        self.user_name = user_name
         self.file_path = file_path  # 文件路径
         self.file_name = file_path.split('/')[-1]  # 文件名
         self.label_5.setText(self.file_name)
@@ -723,35 +788,44 @@ class Share_window(BasicWindow, Ui_ShareWindow):
     def btn_share(self):
         """生成分享链接
         """
-        password = self.lineEdit.text()
-        if not password:
+        sharecode = self.lineEdit.text()
+        if not sharecode:
             self.warn_dialog = Warn_Dialog()
             self.warn_dialog.label.setText('请输入分享密码！')
             self.warn_dialog.show()
             return
         if self.radioButton_2.isChecked():
-            share_time = '7天'
+            share_duration = 7
         elif self.radioButton_3.isChecked():
-            share_time = '30天'
+            share_duration = 30
         elif self.radioButton_4.isChecked():
-            share_time = '无期限'
-        self.share_link_window = Share_link_window(
-            self.file_path, password, share_time)
-        self.share_link_window.show()
-        self.doClose()
+            share_duration = 9999
+        response = client.share(username=self.user_name, filepath=self.file_path,
+                                shareduration=share_duration, sharecode=sharecode)
+        if response['share_flag']:
+            self.share_link_window = Share_link_window(
+                self.file_path, response['share_url'], sharecode, response['qr_str'])
+            self.share_link_window.show()
+            self.doClose()
+        else:
+            self.warn_dialog = Warn_Dialog()
+            self.warn_dialog.label.setText('分享失败！')
+            self.warn_dialog.show()
+            return
 
 
 # 分享链接窗口
 class Share_link_window(BasicWindow, Ui_ShareLinkWindow):
-    def __init__(self, file_path, password, share_time, parent=None):
+    def __init__(self, file_path, link, sharecode, qr_str, parent=None):
         super(Share_link_window, self).__init__(parent)
         self.setupUi(self)
         # print(file_path)
         self.file_path = file_path  # 文件路径
         self.file_name = file_path.split('/')[-1]  # 文件名
-        self.pwd_label.setText(password)
+        self.pwd_label.setText(sharecode)
         self.pwd_label.setTextInteractionFlags(
             Qt.TextSelectableByMouse)  # 设置标签可复制
+        self.link_label.setText(link)
         self.link_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.closeButton.clicked.connect(self.doClose)
         self.closeButton.setCursor(QCursor(Qt.PointingHandCursor))
@@ -1001,6 +1075,7 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     client = Client()
+    # NotificationWindow.success('下载成功', '查看文件', callback=)
     login_window = Login_window()
     login_window.show()
 

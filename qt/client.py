@@ -48,11 +48,7 @@ class Client(requests.Session):
         response = response.json()
         return response
 
-    def upload(self, username, filepath):
-        try:
-            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
-        except IndexError:
-            pwd = ''
+    def upload(self, username, filepath, pwd):
         file = []
         file_all = b''
         size_all = os.path.getsize(filepath)
@@ -125,7 +121,7 @@ class Client(requests.Session):
                 for i in data:
                     f.write(i)
                 f.close()
-            return {"upload_flag": True}
+            return {"download_flag": True}
 
     def delete(self, username, filepath):
         try:
@@ -133,7 +129,7 @@ class Client(requests.Session):
         except IndexError:
             pwd = ''
         data = {
-            'ua': 'pyqt',
+            'ua': self.UA,
             "user_name": username,
             "file_path": filepath,
             "pwd": pwd
@@ -152,7 +148,7 @@ class Client(requests.Session):
         print(filepath)
         print(pwd, username, oldfilename, newfilename)
         data = {
-            'ua': 'pyqt',
+            'ua': self.UA,
             'user_name': username,
             'pwd': pwd,
             'old_file_name': oldfilename,
@@ -163,7 +159,7 @@ class Client(requests.Session):
         if response['rename_flag']:
             return True
 
-    def fetch_folder_file(self, folder_name, belong_folder):
+    def fetch_folder_file(self, folder_name='', belong_folder=''):
         if not belong_folder:
             pdir = folder_name + '/'
         else:
@@ -174,8 +170,27 @@ class Client(requests.Session):
         }
         response = self.get(f'{self.SERVER_URL}/folder/', params=params)
         response = response.json()
-        # print(response)
         return response
+
+    def share(self, username, filepath, shareduration, sharecode):
+        try:
+            pwd = filepath.rsplit('/', 1)[0].split('/', 1)[1]
+        except IndexError:
+            pwd = ''
+        filename = filepath.rsplit('/', 1)[1]
+        data = {
+            'ua': 'pyqt',
+            'user_name': username,
+            'pwd': pwd,
+            'file_name': filename,
+            'file_sharecode': sharecode,
+            'share_duration': shareduration
+        }
+        response = self.post(f'{self.SERVER_URL}/share_file/', data)
+        response = response.json()
+        return response
+        
+
 
 if __name__ == "__main__":
     client = Client()

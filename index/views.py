@@ -96,7 +96,7 @@ def folder(request):
                 uri = uri + value + '/'
                 breadcrumb_list.append({'tag': value, 'uri': uri})
         return render(request, 'index.html',
-                        {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
+                      {'index_list': index_list, 'username': str(user), 'breadcrumb_list': breadcrumb_list})
     elif ua == 'pyqt':
         file_list = []
         folder_list = []
@@ -156,7 +156,8 @@ def share_file(request):
     if request.method == 'GET':
         return redirect('/')
     elif request.method == 'POST':
-        user_name = str(request.user)
+        ua = request.POST.get('ua', '')
+        user_name = request.POST.get('user_name')
         pwd = request.POST.get('pwd', '')
         user_name = request.POST.get('user_name')
         user_obj = User.objects.get(username=user_name)
@@ -166,7 +167,6 @@ def share_file(request):
         file_sharecode = request.POST.get('file_sharecode')
         start_time = timezone.now()
         end_time = start_time + datetime.timedelta(days=share_duration)
-
         file_obj = models.FileInfo.objects.get(
             belong_folder=pwd, file_name=file_name, user_id=user_id)
         file_path = file_obj.file_path
@@ -182,10 +182,12 @@ def share_file(request):
 
                                                         file_name=file_name, start_time=start_time, end_time=end_time, file_size=file_size,
                                                         belong_folder=pwd, share_url=share_url)
-
-        return JsonResponse({'file_sharecode': file_sharecode,
-                             'share_url': share_url,
-                             'qr_str': qr_str})
+        return JsonResponse({
+            'share_flag': True,
+            'file_sharecode': file_sharecode,
+            'share_url': share_url,
+            'qr_str': qr_str
+        })
 
 # 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
 

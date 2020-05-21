@@ -41,7 +41,7 @@ QPushButton:hover{
     border-radius:10px;
     color:%s;
 }
-# closeButton{
+#closeButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -50,12 +50,12 @@ QPushButton:hover{
     qproperty-text:"r";
     border-radius:10px;
 }
-# closeButton:hover{
+#closeButton:hover{
     color:white;
     border:none;
     background:red;
 }
-# minButton{
+#minButton{
     background:%s;
     max-width:36px;
     max-height:36px;
@@ -64,7 +64,7 @@ QPushButton:hover{
     qproperty-text:"0";
     border-radius:10px;
 }
-# minButton:hover{
+#minButton:hover{
     color:black;
     border:none;
     background:%s;

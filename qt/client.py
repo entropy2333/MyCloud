@@ -174,12 +174,13 @@ class Client(requests.Session):
         }
         response = self.get(f'{self.SERVER_URL}/folder/', params=params)
         response = response.json()
-        print(response)
+        # print(response)
         return response
 
 if __name__ == "__main__":
     client = Client()
-    print(client.user_login('ddd', '1'))
+    print(client.user_login('ddd', 'dd'))
     # print(client.fetch_all_file())
     # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
     # print(client.download('ddd/qt测试.txt'))
+    print(client.fetch_folder_file('/', '/'))

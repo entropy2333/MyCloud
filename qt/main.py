@@ -1,5 +1,6 @@
 from utils.FramelessDialog import *
 from utils.VerificationCode import WidgetCode
+from utils.Notification import *
 from UI.Ui_transfer import Ui_TransferWindow
 from UI.Ui_register import Ui_RegisterWindow
 from UI.Ui_login import Ui_LoginWindow
@@ -165,6 +166,13 @@ class BasicWindow(QMainWindow):
             event.accept()
 
 
+# 双向链表，存放路径信息
+class ListNode:
+    def __init__(self, x):
+        self.val = x
+        self.next = None
+        self.prev = None
+
 # 主窗口
 class Main_window(BasicWindow, Ui_MainWindow):
     def __init__(self, user_name, parent=None):
@@ -173,6 +181,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
         self.is_file_found = False  # 判断是否找到对应文件
+        self.file_path_node = ListNode('root')  # 当前路径
 
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
@@ -288,8 +297,8 @@ class Main_window(BasicWindow, Ui_MainWindow):
                     '#%s{background-color:%s; border-radius:0;}' % (btn, GRAY_COLOR))
         file_list = all_file['file_list']
         folder_list = all_file['folder_list']
-        print(all_file)
-        print('='*100)
+        # print(all_file)
+        # print('='*100)
         # 所有文件页面初始化
         if file_list or folder_list:
             self.is_file_exist['allfile_btn'] = True
@@ -472,6 +481,10 @@ class Main_window(BasicWindow, Ui_MainWindow):
         """
         belong_folder = btn.objectName().split('%^')[0]
         folder_name = btn.objectName().split('%^')[1]
+        self.file_path_node.next = ListNode(btn.objectName())
+        temp = self.file_path_node
+        self.file_path_node = self.file_path_node.next
+        self.file_path_node.prev = temp
         self.refresh_ui(folder_name, belong_folder)
         print(f'父目录: {belong_folder} 文件夹名: {folder_name}')
 
@@ -583,12 +596,32 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_back(self):
         """回退
         """
-        print("回退")
+        if self.file_path_node.prev:
+            if self.file_path_node.prev.val == 'root':
+                self.refresh_ui()
+            else:
+                belong_folder = self.file_path_node.prev.val.split('%^')[0]
+                folder_name = self.file_path_node.prev.val.split('%^')[1]
+                self.refresh_ui(folder_name, belong_folder)
+            self.file_path_node = self.file_path_node.prev
+        # else:
+        #     print('到底了')
+        # print("回退")
 
     def btn_forward(self):
         """前进
         """
-        print("前进")
+        if self.file_path_node.next:
+            if self.file_path_node.next.val == 'root':
+                self.refresh_ui()
+            else:
+                belong_folder = self.file_path_node.next.val.split('%^')[0]
+                folder_name = self.file_path_node.next.val.split('%^')[1]
+                self.refresh_ui(folder_name, belong_folder)
+            self.file_path_node = self.file_path_node.next
+        # else:
+        #     print('到底了')
+        # print("前进")
 
     def btn_search(self):
         """搜索网盘文件
@@ -1013,6 +1046,7 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     client = Client()
+    # NotificationWindow.success('下载成功', '查看文件', callback=)
     login_window = Login_window()
     login_window.show()
 

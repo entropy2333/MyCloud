@@ -163,7 +163,7 @@ class Client(requests.Session):
         if not belong_folder:
             pdir = folder_name + '/'
         else:
-            pdir = belong_folder + '/' + folder_name + '/'
+            pdir = belong_folder + folder_name + '/'
         params = {
             'ua': self.UA,
             'pdir': pdir
@@ -198,4 +198,4 @@ if __name__ == "__main__":
     # print(client.fetch_all_file())
     # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
     # print(client.download('ddd/qt测试.txt'))
-    print(client.fetch_folder_file('/', '/'))
+    print(client.fetch_folder_file('ddd', 'test/'))

@@ -365,7 +365,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>8</number>
      </property>
      <widget class="QWidget" name="allfile_page">
       <widget class="QTableWidget" name="allfile_table">
@@ -557,21 +557,6 @@
          <string>操作</string>
         </property>
        </column>
-       <column>
-        <property name="text">
-         <string>新建列</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>新建列</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>新建列</string>
-        </property>
-       </column>
       </widget>
      </widget>
      <widget class="QWidget" name="no_file_page">
@@ -644,6 +629,38 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="search_result_page">
+      <widget class="QTableWidget" name="search_table">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>931</width>
+         <height>581</height>
+        </rect>
+       </property>
+       <column>
+        <property name="text">
+         <string>文件名</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>大小</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>修改时间</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>操作</string>
+        </property>
+       </column>
       </widget>
      </widget>
     </widget>

@@ -319,19 +319,31 @@ def delete_folder(request):
 
 @login_required
 def mkdir(request):
+    ua = request.GET.get('ua', '')
     user = request.user
     user_id = User.objects.get(username=user).id
     pwd = request.GET.get('pwd')
     folder_name = request.GET.get('folder_name')
     update_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
-    try:
-        models.FolderInfo.objects.create(user_id=user_id, folder_name=folder_name, belong_folder=pwd,
-                                         update_time=update_time)
-        user_path = os.path.join(BASE_DIR, 'static', str(user))
-        os.mkdir(user_path + '/' + pwd + folder_name)
-    except Exception as e:
-        print(e)
-    return redirect('/folder/?pdir=' + pwd)
+    if not ua:
+        try:
+            models.FolderInfo.objects.create(user_id=user_id, folder_name=folder_name, belong_folder=pwd,
+                                            update_time=update_time)
+            user_path = os.path.join(BASE_DIR, 'static', str(user))
+            os.mkdir(user_path + '/' + pwd + folder_name)
+        except Exception as e:
+            print(e)
+        return redirect('/folder/?pdir=' + pwd)
+    elif ua == "pyqt":
+        try:
+            models.FolderInfo.objects.create(user_id=user_id, folder_name=folder_name, belong_folder=pwd,
+                                            update_time=update_time)
+            user_path = os.path.join(BASE_DIR, 'static', str(user))
+            os.mkdir(user_path + '/' + pwd + folder_name)
+        except Exception as e:
+            return JsonResponse({"error_info": e})
+    else:
+        return render(request, '404.html')
 
 
 @login_required
@@ -545,6 +557,8 @@ def register(request):
             else:
                 return JsonResponse({'register_flag': False, 'error_info': '两次密码不一致'})
             return JsonResponse({'register_flag': True})
+        else:
+            return render(request, '404.html')
 
 
 def logout(request):

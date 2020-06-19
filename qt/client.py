@@ -33,12 +33,12 @@ class Client(requests.Session):
             'repassword': repassowrd,
             'ua': self.UA
         }
-        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/register/', data)
         response = response.json()
-        if response['register_flag']:
+        if response.get('register_flag'):
             return True
         else:
-            return response['error_info']
+            return response.get('error_info')
 
     def fetch_all_file(self):
         params = {

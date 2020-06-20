@@ -19,6 +19,7 @@ import threading
 import sys
 import os
 import qtawesome
+import time
 root_path = os.getcwd()
 sys.path.append(f'{root_path}\\qt')
 
@@ -189,6 +190,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.folder_name = ''
         self.download_thread = []
         self.upload_thread = []
+        self.transfer_files = {"download":{}, "upload":{}}
         self.left_column = {'allfile_btn': 0, 'doc_btn': 1, 'img_btn': 2,
                             'music_btn': 3, 'video_btn': 4, 'other_btn': 5}  # 左边栏
         self.file_button = {'删除': 'fa.trash', '重命名': 'fa.pencil-square',
@@ -264,23 +266,17 @@ class Main_window(BasicWindow, Ui_MainWindow):
         self.transfer_btn.setIcon(qtawesome.icon('fa.exchange'))  # 传输列表按钮
         self.transfer_btn.setGeometry(QtCore.QRect(480, 8, 111, 37))
         self.transfer_btn.clicked.connect(self.btn_transfer)
-        self.allfile_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))  # 全部文件按钮
+        self.allfile_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))  # 全部文件按钮
         self.allfile_btn.clicked.connect(lambda: self.btn_left('allfile_btn'))
-        self.doc_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))  # 文档按钮
+        self.doc_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))  # 文档按钮
         self.doc_btn.clicked.connect(lambda: self.btn_left('doc_btn'))
-        self.music_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))  # 音乐按钮
+        self.music_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))  # 音乐按钮
         self.music_btn.clicked.connect(lambda: self.btn_left('music_btn'))
-        self.video_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))  # 视频按钮
+        self.video_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))  # 视频按钮
         self.video_btn.clicked.connect(lambda: self.btn_left('video_btn'))
-        self.other_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))  # 其他按钮
+        self.other_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))  # 其他按钮
         self.other_btn.clicked.connect(lambda: self.btn_left('other_btn'))
-        self.img_btn.setIcon(
-            QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))  # 图片按钮
+        self.img_btn.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))  # 图片按钮
         self.img_btn.clicked.connect(lambda: self.btn_left('img_btn'))
 
     def init_menu(self):
@@ -388,8 +384,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 """ % (BACKGROUND_COLOR, HOVER_COLOR))
             new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/folder.png'))
             new.setText(folder_['folder_name'])
-            new.clicked.connect(
-                lambda: self.open_folder(self.sender()))  # 打开文件夹
+            new.clicked.connect(lambda: self.open_folder(self.sender()))  # 打开文件夹
             eval(f'self.{file_type}_table').setCellWidget(i, 0, new)
             new = QTableWidgetItem(folder_['update_time'].replace('T', ' '))
             eval(f'self.{file_type}_table').setItem(i, 2, new)
@@ -510,20 +505,23 @@ class Main_window(BasicWindow, Ui_MainWindow):
         def cd_folder():
             os.startfile(f'{SAVE_PATH}/DownLoads')
         def get_result(parameter):
-            print('parameter:', parameter)
+            # print('parameter:', parameter)
             self.result = parameter
-            print(f'self.result: {self.result}')
+            # print(f'self.result: {self.result}')
             if self.result == '1':  # 重命名、分享、删除
                 self.refresh_ui()
             elif self.result == '2':  # 下载
                 NotificationWindow.success('下载成功', '查看文件', callback=cd_folder)
+
         operation = btn.objectName().split('%^')[0]
         file_path = btn.objectName().split('%^')[1]
+        file_name = file_path.split("/")[-1]
         if operation == '下载':
-            self.download_thread.append(newThread(
-                mode='download', args=(file_path, SAVE_PATH,)))
+            self.download_thread.append(newThread(mode='download', args=(file_path, SAVE_PATH,)))
             self.download_thread[-1].start()
             self.download_thread[-1].trigger.connect(get_result)
+            download_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            self.transfer_files['download'][file_name] = download_time
         elif operation == '重命名':
             self.rename_window = Rename_window(
                 file_path=file_path, user_name=self.user_name)
@@ -535,8 +533,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
             self.share_window = Share_window(self.user_name, file_path)
             self.share_window.show()
         elif operation == '删除':
-            self.delete_thread = newThread(
-                mode='delete', args=(self.user_name, file_path,))
+            self.delete_thread = newThread(mode='delete', args=(self.user_name, file_path,))
             self.delete_thread.start()
             self.delete_thread.trigger.connect(get_result)
         print(f'{operation}: {file_path}')
@@ -564,7 +561,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         def confirm_close(parameter):
             self.is_open_tw = parameter
         if not self.is_open_tw:
-            self.transfer_window = Transfer_window()
+            self.transfer_window = Transfer_window(self.transfer_files)
             self.is_open_tw = True
             self.transfer_window.show()
             self.transfer_window.signal.connect(confirm_close)  # 确认传输窗口关闭
@@ -585,14 +582,16 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 self.refresh_ui()
                 NotificationWindow.success('上传成功', '')
         self.upload_flag = False
-        fileinfo = self.uploadselect.getOpenFileName(
-            self, 'OpenFile', "c:/")
+        fileinfo = self.uploadselect.getOpenFileName(self, 'OpenFile', "c:/")
+        # print(fileinfo)
         if os.path.exists(fileinfo[0]):
-            print(f'{self.belong_folder}{self.folder_name}/')
-            self.upload_thread.append(newThread(mode='upload', args=(
-                self.user_name, fileinfo[0], f'{self.belong_folder}{self.folder_name}')))
+            file_name = fileinfo[0].split("/")[-1]
+            # print(f'{self.belong_folder}{self.folder_name}/')
+            self.upload_thread.append(newThread(mode='upload', args=(self.user_name, fileinfo[0], f'{self.belong_folder}{self.folder_name}')))
             self.upload_thread[-1].start()
             self.upload_thread[-1].trigger.connect(get_result)
+            upload_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            self.transfer_files['upload'][file_name] = upload_time
             # func.start()
 
     def btn_mkdir(self):
@@ -1115,7 +1114,9 @@ class Register_window(BasicWindow, Ui_RegisterWindow):
 class Transfer_window(BasicWindow, Ui_TransferWindow):
     signal = QtCore.pyqtSignal(bool)  # 传递是否有窗口打开的布尔值
 
-    def __init__(self, parent=None):
+    def __init__(self, transfer_files, parent=None):
+        print(transfer_files)
+        self.transfer_files = transfer_files
         super(Transfer_window, self).__init__(parent)
         self.setupUi(self)
         self.is_download = False  # 是否正在下载
@@ -1128,45 +1129,157 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
         Qss += 'QWidget#widget{background-color:%s;}' % BACKGROUND_COLOR
         Qss += 'QWidget#widget_2{background-color:%s;}' % TITLE_COLOR
         for btn in self.top_column:
-            Qss += '#%s_btn{background-color:%s; border-radius:0;}' % (
-                btn, TITLE_COLOR)
-            Qss += '#%s_btn:hover{background-color:%s; border-radius:0;}' % (
-                btn, LIGHT_FUNC_COLOR)
-            eval(f'self.{btn}_btn').setCursor(
-                QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
+            Qss += '#%s_btn{background-color:%s; border-radius:0;}' % (btn, TITLE_COLOR)
+            Qss += '#%s_btn:hover{background-color:%s; border-radius:0;}' % (btn, LIGHT_FUNC_COLOR)
+            eval(f'self.{btn}_btn').setCursor(QCursor(Qt.PointingHandCursor))  # 鼠标悬停按钮上时变小手
         self.setStyleSheet(Qss)  # 边框部分qss重载
 
         # 静态页面设置
-        self.label.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/download.png').scaled(
-            self.label.width(), self.label.height()))  # 添加logo
-        self.label_4.setPixmap(QPixmap(
-            f'{ABSOLUTE_PATH}/img/upload.png').scaled(self.label_4.width(), self.label_4.height()))
-        self.label_3.setPixmap(QPixmap(
-            f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
+        self.label.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/download.png').scaled(self.label.width(), self.label.height()))  # 添加logo
+        self.label_4.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/upload.png').scaled(self.label_4.width(), self.label_4.height()))
+        self.label_3.setPixmap(QPixmap(f'{ABSOLUTE_PATH}/img/history.png').scaled(self.label_3.width(), self.label_3.height()))
 
         # 按钮功能实现
         self.closeButton.clicked.connect(self.signalClose)
         self.minButton.clicked.connect(self.showMinimized)
-        self.upload_btn.clicked.connect(
-            lambda: self.btn_top('upload'))  # 上传列表按钮
+        self.upload_btn.setText("上传完成")     # 上传列表按钮
+        self.upload_btn.clicked.connect(lambda: self.btn_top('upload'))  
         self.upload_btn.setIcon(qtawesome.icon('fa.upload'))
-        self.download_btn.clicked.connect(
-            lambda: self.btn_top('download'))  # 下载列表按钮
+        self.download_btn.setText("下载完成")       # 下载列表按钮
+        self.download_btn.clicked.connect(lambda: self.btn_top('download'))  
         self.download_btn.setIcon(qtawesome.icon('fa.download'))
-        self.complete_btn.clicked.connect(
-            lambda: self.btn_top('complete'))  # 传输完成按钮
-        self.complete_btn.setIcon(qtawesome.icon('fa.check-square-o'))
+        self.complete_btn.setHidden(True)
+        # self.complete_btn.clicked.connect(lambda: self.btn_top('complete'))  # 传输完成按钮
+        # self.complete_btn.setIcon(qtawesome.icon('fa.check-square-o'))
 
     def init_ui(self):
         """界面初始化
         """
-        self.download_btn.setStyleSheet(
-            '#download_btn{background-color:%s; color:%s; border-bottom:5px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
+        def cd_folder():
+            os.startfile(f'{SAVE_PATH}/DownLoads')
+
+        self.download_btn.setStyleSheet('#download_btn{background-color:%s; color:%s; border-bottom:5px solid %s}' % (FUNC_COLOR, HOVER_COLOR, HOVER_COLOR))
+        # 有上传文件
+        if self.transfer_files['upload']: 
+            self.is_upload = True
+            file_num = len(self.transfer_files['upload'])
+            self.upload_w.clear()  # 表格先清空
+            self.upload_w.setColumnCount(5)
+            self.upload_w.setRowCount(file_num)
+            # 设置表格每项大小
+            self.upload_w.setColumnWidth(0, 200)
+            self.upload_w.setColumnWidth(1, 170)
+            self.upload_w.setColumnWidth(2, 100)
+            self.upload_w.setColumnWidth(3, 50)
+            self.upload_w.setColumnWidth(4, 50)
+            self.upload_w.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+            self.upload_w.verticalHeader().setVisible(False)  # 隐藏水平头标签
+            self.upload_w.horizontalHeader().setVisible(False)
+            self.upload_w.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
+            self.upload_w.setSelectionMode(QAbstractItemView.NoSelection)
+            self.upload_w.setShowGrid(False)  # 不显示网格
+            for i, file_ in enumerate(self.transfer_files['upload']):
+                new = QTableWidgetItem(file_)
+                self.upload_w.setItem(i, 0, new)
+                new = QTableWidgetItem(self.transfer_files['upload'][file_])
+                self.upload_w.setItem(i, 1, new)
+                new = QTableWidgetItem("上传成功")
+                new.setIcon(qtawesome.icon('fa.arrow-circle-o-up'))
+                self.upload_w.setItem(i, 2, new)
+                # 操作部分
+                new = QPushButton(self.stackedWidget)
+                new.setObjectName(f"0*&{str(i)}*&{file_}")
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setToolTip('清除记录')
+                new.setIcon(qtawesome.icon('fa.trash-o'))
+                new.clicked.connect(lambda: self.delete_row(self.sender()))
+                self.upload_w.setCellWidget(i, 4, new)
+        # 有下载文件
+        if self.transfer_files['download']: 
+            self.is_download = True
+            file_num = len(self.transfer_files['download'])
+            self.download_w.clear()  # 表格先清空
+            self.download_w.setColumnCount(5)
+            self.download_w.setRowCount(file_num)
+            # 设置表格每项大小
+            self.download_w.setColumnWidth(0, 200)
+            self.download_w.setColumnWidth(1, 170)
+            self.download_w.setColumnWidth(2, 100)
+            self.download_w.setColumnWidth(3, 50)
+            self.download_w.setColumnWidth(4, 50)
+            self.download_w.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+            self.download_w.verticalHeader().setVisible(False)  # 隐藏水平头标签
+            self.download_w.horizontalHeader().setVisible(False)
+            self.download_w.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
+            self.download_w.setSelectionMode(QAbstractItemView.NoSelection)
+            self.download_w.setShowGrid(False)  # 不显示网格
+            for i, file_ in enumerate(self.transfer_files['download']):
+                new = QTableWidgetItem(file_)
+                self.download_w.setItem(i, 0, new)
+                new = QTableWidgetItem(self.transfer_files['download'][file_])
+                self.download_w.setItem(i, 1, new)
+                new = QTableWidgetItem("下载成功")
+                new.setIcon(qtawesome.icon('fa.arrow-circle-o-down'))
+                self.download_w.setItem(i, 2, new)
+                # 操作部分
+                new = QPushButton(self.stackedWidget)
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setToolTip('打开文件夹')
+                new.setIcon(qtawesome.icon('fa.folder-open-o'))
+                new.clicked.connect(cd_folder)
+                self.download_w.setCellWidget(i, 3, new)
+                new = QPushButton(self.stackedWidget)
+                new.setObjectName(f"1*&{str(i)}*&{file_}")
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setToolTip('清除记录')
+                new.setIcon(qtawesome.icon('fa.trash-o'))
+                new.clicked.connect(lambda: self.delete_row(self.sender()))
+                self.download_w.setCellWidget(i, 4, new)
         if self.is_download:
             self.stackedWidget.setCurrentIndex(0)
         else:
             self.stackedWidget.setCurrentIndex(3)
 
+    def delete_row(self, btn):
+        """删除表格一行
+
+        Args:
+            btn: 按钮
+        """
+        type_ = btn.objectName().split('*&')[0]
+        row_num = int(btn.objectName().split('*&')[1])
+        file_name = btn.objectName().split('*&')[2]
+        if type_ == '0':    # 上传列表
+            self.upload_w.removeRow(row_num)
+            del self.transfer_files['upload'][file_name]
+        elif type_ == '1':      # 下载列表
+            self.download_w.removeRow(row_num)
+            del self.transfer_files['download'][file_name]
+        
     def btn_top(self, btn_name):
         """顶部栏栏按钮对应事件
         """
@@ -1179,8 +1292,7 @@ class Transfer_window(BasicWindow, Ui_TransferWindow):
             self.stackedWidget.setCurrentIndex(self.top_column[btn_name]+3)
         for btn in self.top_column:  # 其他按钮全部恢复
             if btn != btn_name:
-                eval(f'self.{btn}_btn').setStyleSheet(
-                    '#%s{background-color:%s; border-radius:0;}' % (f'{btn}_btn', TITLE_COLOR))
+                eval(f'self.{btn}_btn').setStyleSheet('#%s{background-color:%s; border-radius:0;}' % (f'{btn}_btn', TITLE_COLOR))
 
     def signalClose(self):
         """淡出关闭窗口并向父窗口发送已关闭的信息

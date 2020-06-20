@@ -33,12 +33,12 @@ class Client(requests.Session):
             'repassword': repassowrd,
             'ua': self.UA
         }
-        response = self.post(f'{self.SERVER_URL}/login/?next=/', data)
+        response = self.post(f'{self.SERVER_URL}/register/', data)
         response = response.json()
-        if response['register_flag']:
+        if response.get('register_flag'):
             return True
         else:
-            return response['error_info']
+            return response.get('error_info')
 
     def fetch_all_file(self):
         params = {
@@ -163,7 +163,7 @@ class Client(requests.Session):
         if not belong_folder:
             pdir = folder_name + '/'
         else:
-            pdir = belong_folder + '/' + folder_name + '/'
+            pdir = belong_folder + folder_name + '/'
         params = {
             'ua': self.UA,
             'pdir': pdir
@@ -198,4 +198,4 @@ if __name__ == "__main__":
     # print(client.fetch_all_file())
     # print(client.upload('ddd', 'e:/qt测试.txt', pwd=''))
     # print(client.download('ddd/qt测试.txt'))
-    print(client.fetch_folder_file('/', '/'))
+    print(client.fetch_folder_file('ddd', 'test/'))

@@ -176,16 +176,14 @@ class ListNode:
     def remove(self):
         self.prev.next = self.next
 
+
 # 主窗口
-
-
 class Main_window(BasicWindow, Ui_MainWindow):
     def __init__(self, user_name, parent=None):
         super(Main_window, self).__init__(parent)
         self.setupUi(self)
         self.user_name = user_name  # 当前登陆的用户的用户名
         self.is_open_tw = False  # 判断是否打开传输列表窗口
-        self.is_file_found = False  # 判断是否找到对应文件
         self.file_path_node = ListNode('root')  # 当前路径
         self.belong_folder = ''
         self.folder_name = ''
@@ -359,8 +357,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         eval(f'self.{file_type}_table').clear()  # 表格先清空
         eval(f'self.{file_type}_table').setColumnCount(7)
         eval(f'self.{file_type}_table').setRowCount(folder_num + file_num)
-        eval(f'self.{file_type}_table').setHorizontalHeaderLabels(
-            ['文件', '大小', '修改时间', '', '', '', ''])
+        eval(f'self.{file_type}_table').setHorizontalHeaderLabels(['文件', '大小', '修改时间', '', '', '', ''])
         # 设置表格每项大小
         eval(f'self.{file_type}_table').setColumnWidth(0, 429)
         eval(f'self.{file_type}_table').setColumnWidth(1, 120)
@@ -369,14 +366,10 @@ class Main_window(BasicWindow, Ui_MainWindow):
         eval(f'self.{file_type}_table').setColumnWidth(4, 50)
         eval(f'self.{file_type}_table').setColumnWidth(5, 50)
         eval(f'self.{file_type}_table').setColumnWidth(6, 50)
-        eval(f'self.{file_type}_table').setEditTriggers(
-            QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
-        eval(f'self.{file_type}_table').verticalHeader(
-        ).setVisible(False)  # 隐藏水平头标签
-        eval(f'self.{file_type}_table').setSelectionBehavior(
-            QAbstractItemView.SelectRows)  # 设置为整行选中
-        eval(f'self.{file_type}_table').setSelectionMode(
-            QAbstractItemView.NoSelection)
+        eval(f'self.{file_type}_table').setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+        eval(f'self.{file_type}_table').verticalHeader().setVisible(False)  # 隐藏水平头标签
+        eval(f'self.{file_type}_table').setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
+        eval(f'self.{file_type}_table').setSelectionMode(QAbstractItemView.NoSelection)
         eval(f'self.{file_type}_table').setShowGrid(False)  # 不显示网格
 
         for i, folder_ in enumerate(folder_list):
@@ -488,6 +481,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
         Arguments:
             btn {QPushButton} -- 打开文件夹的按钮
         """
+        # print(btn.objectName())
         self.belong_folder = btn.objectName().split('%^')[0]
         self.folder_name = btn.objectName().split('%^')[1]
         self.file_path_node.next = ListNode(btn.objectName())
@@ -632,8 +626,7 @@ class Main_window(BasicWindow, Ui_MainWindow):
                 self.folder_name = ''
                 self.refresh_ui()
             else:
-                self.belong_folder = self.file_path_node.next.val.split('%^')[
-                    0]
+                self.belong_folder = self.file_path_node.next.val.split('%^')[0]
                 self.folder_name = self.file_path_node.next.val.split('%^')[1]
                 self.refresh_ui()
             self.file_path_node = self.file_path_node.next
@@ -644,13 +637,108 @@ class Main_window(BasicWindow, Ui_MainWindow):
     def btn_search(self):
         """搜索网盘文件
         """
+        is_file_found = False  # 判断是否找到对应文件
         file_search = self.lineEdit.text()
-        print(f'搜索: {file_search}')
+        results = []
+        if file_search:
+            for f in self.all_file_stored:
+                if file_search in f['file_name']:
+                    results.append(f)
+                    is_file_found = True
+        else:
+            self.stackedWidget.setCurrentIndex(0)  # 若没有输入搜索内容，则回到主界面
+            return
+        # print(results)
+        # print(f'搜索: {file_search}')
         # 搜索到文件
-        if self.is_file_found:
-            pass
+        if is_file_found:
+            self.show_search_result(results)
+            self.stackedWidget.setCurrentIndex(8)
         else:
             self.stackedWidget.setCurrentIndex(7)
+
+    def show_search_result(self, results):
+        """显示搜索结果
+        """
+        file_num = len(results)
+        self.search_table.clear()  # 表格先清空
+        self.search_table.setColumnCount(7)
+        self.search_table.setRowCount(file_num)
+        self.search_table.setHorizontalHeaderLabels(['文件', '大小', '修改时间', '', '', '', ''])
+        # 设置表格每项大小
+        self.search_table.setColumnWidth(0, 429)
+        self.search_table.setColumnWidth(1, 120)
+        self.search_table.setColumnWidth(2, 180)
+        self.search_table.setColumnWidth(3, 50)
+        self.search_table.setColumnWidth(4, 50)
+        self.search_table.setColumnWidth(5, 50)
+        self.search_table.setColumnWidth(6, 50)
+        self.search_table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 表格禁止编辑
+        self.search_table.verticalHeader().setVisible(False)  # 隐藏水平头标签
+        self.search_table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 设置为整行选中
+        self.search_table.setSelectionMode(QAbstractItemView.NoSelection)
+        self.search_table.setShowGrid(False)  # 不显示网格
+
+        for i, file_ in enumerate(results):
+            new = QPushButton(self.stackedWidget)
+            objname = f"{file_['file_path']}"  # 按钮名称设置
+            new.setObjectName(objname)
+            new.setStyleSheet("""
+                QPushButton{
+                    background-color:%s;
+                    text-align:left
+                }
+                QPushButton:hover{
+                    color:%s;
+                }
+                """ % (BACKGROUND_COLOR, HOVER_COLOR))
+            mime = file_['file_name'].split('.')[-1]
+            if mime in ['doc', 'docx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/word.png'))
+            elif mime == 'txt':
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/txt.png'))
+            elif mime in ['ppt', 'pptx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/ppt.png'))
+            elif mime in ['xls', 'xlsx']:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/xls.png'))
+            elif mime == 'pdf':
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/pdf.png'))
+            elif mime in img_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/img.png'))
+            elif mime in music_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/music.png'))
+            elif mime in video_list:
+                new.setIcon(QIcon(f'{ABSOLUTE_PATH}/img/file_icon/video.png'))
+            else:
+                new.setIcon(
+                    QIcon(f'{ABSOLUTE_PATH}/img/file_icon/unknown.png'))
+            new.setText(file_['file_name'])
+            new.clicked.connect(
+                lambda: self.file_preview(self.sender()))  # 文件预览
+            self.search_table.setCellWidget(i, 0, new)
+            new = QTableWidgetItem(file_['file_size'])
+            self.search_table.setItem(i, 1, new)
+            new = QTableWidgetItem(file_['update_time'].replace('T', ' '))
+            self.search_table.setItem(i, 2, new)
+            # 操作部分
+            for j, btn_name in enumerate(['下载', '重命名', '分享', '删除']):
+                new = QPushButton(self.stackedWidget)
+                objname = btn_name + '%^' + file_['file_path']
+                new.setObjectName(objname)  # 文件操作按钮名称
+                new.setStyleSheet("""
+                    QPushButton{
+                        background-color:%s;
+                    }
+                    QPushButton:hover{
+                        color:%s;
+                    }
+                    """ % (BACKGROUND_COLOR, HOVER_COLOR))
+                new.setCursor(QCursor(Qt.PointingHandCursor))
+                new.setIcon(qtawesome.icon(self.file_button[btn_name]))
+                new.setToolTip(btn_name)
+                new.clicked.connect(
+                    lambda: self.file_operation(self.sender()))  # 文件操作
+                self.search_table.setCellWidget(i, j+3, new)
 
     def refresh_ui(self):
         """动态刷新界面
@@ -659,15 +747,27 @@ class Main_window(BasicWindow, Ui_MainWindow):
             folder_name {str}} -- 文件夹名 (default: {None})
             belong_folder {str} -- 父目录 (default: {None})
         """
+        self.get_all_file()
         if not self.folder_name:  # 主界面刷新
             print("刷新1")
             self.all_file = client.fetch_all_file()
             self.init_ui(self.all_file)
         else:  # 进入文件夹界面
             print("刷新2")
-            self.all_file = client.fetch_folder_file(
-                self.folder_name, self.belong_folder)
+            self.all_file = client.fetch_folder_file(self.folder_name, self.belong_folder)
             self.init_ui(self.all_file)
+
+    def get_all_file(self):
+        """获取网盘中的所有文件(BFS)
+        """
+        temp = client.fetch_all_file()
+        self.all_file_stored = temp['file_list']
+        folders = temp['folder_list']
+        while folders:
+            folder = folders.pop(0)
+            temp = client.fetch_folder_file(folder['folder_name'], folder['belong_folder'])
+            self.all_file_stored += temp['file_list']
+            folders += temp['folder_list']
 
     def logout(self):
         """注销账户

@@ -189,9 +189,8 @@ def share_file(request):
             'qr_str': qr_str
         })
 
+
 # 下载某一用户分享的文件 /download_share_file?user_name=&file_name=&pwd=
-
-
 def download_share_file(request):
     user_name = base64.b64decode(request.GET.get('user_name', '').replace(
         '-', '/').replace('_', '+').encode()).decode()

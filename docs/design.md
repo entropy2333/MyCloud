@@ -321,3 +321,4 @@ class Client(requests.Session):
 
 &emsp;&emsp;设计之初，Web 端的HTTP Request 计划以ajax 的XMLHttpRequest为主。经过调研之后，我们发现部分浏览器对ajax 的支持和兼容并不完备，偶尔会出现不执行ajax 而直接返回等一系列问题。
 &emsp;&emsp;为了尽量避免浏览器兼容性问题，我们以form 表单提交请求为主，仅在必要的部分采用ajax 方式，最大限度地避免iDrive 网盘在Web 端的兼容性问题。 
+

@@ -212,7 +212,6 @@ def index(request):
 &emsp;&emsp;Web 客户端使用Bootstrap 组件构建按钮、模态框等页面控件，向用户提供美观的接口，用户通过简单的点击按钮、选择文件、输入文本等，即可实现相应的操作。
 
 
-
 ### 3.3 PyQt 客户端设计
 
 #### 3.3.1 与后端通信
@@ -236,11 +235,11 @@ def user_login(self, username, password):
             return False
 ```
 
-## 4. 接口说明
+## 4. 接口与函数设计
 
 ### 4.1 用户接口
 
-#### 4.1.1 Web端主界面
+#### 4.1.1 Web 端主界面
 
 &emsp;&emsp;注册账号并成功登陆后，用户进入网盘的主界面，用户可以在此界面选择需要使用的功能，比如上传、下载、重命名、分享文件等。界面右上角标识了当前的用户名，可以点击注销按钮注销当前用户。
 
@@ -249,18 +248,18 @@ def user_login(self, username, password):
   <p><em>fig 4.1-1 Web端主界面 </em></p>
 </div>
 
-#### 4.1.2 PyQt端主界面
+#### 4.1.2 PyQt 端主界面
+
+&emsp;&emsp;PyQt 端向用户提供与Web 端类似的所有接口，并增加传输列表部分，用户点击即可浏览当前已下载完成的文件列表。
 
 <div align="center">
   <img src="./img/qt主界面.png"></img>
   <p><em>fig 4.1-2 PyQt端主界面 </em></p>
 </div>
 
-### 4.2 内部接口
+### 4.2 路由函数
 
-#### 4.2.1 路由函数
-
-该文件定义了不同url与函数的映射关系，访问不同的url会调用相应的函数，并返回结果。
+路由函数定义不同url与函数的映射关系，访问不同的url会调用相应的函数，并返回结果。
 
 ```python
 from django.contrib import admin
@@ -291,4 +290,34 @@ handler404 = views.page_not_found
 handler500 = views.page_error
 ```
 
+### 4.3 内部接口
+
+&emsp;&emsp;如前3.2.2 所示，Web 端使用JavaScript 对各种操作提供相应的通信接口。
+&emsp;&emsp;PyQt 端将UI 和逻辑分离，直接使用自定义的Client 类提供通信接口，Client 类继承session 类，设置UA 关键字，定义上传、下载等方法。
+
+```py
+class Client(requests.Session):
+    def __init__(self):
+    def user_login(self, username, password):
+    def user_register(self, username, password, repassowrd):
+    def fetch_all_file(self):
+    def upload(self, username, filepath, pwd):
+    def download(self, filepath, savepath='e:\\'):
+    def delete(self, username, filepath):
+    def rename(self, username, filepath, newfilename):
+    def fetch_folder_file(self, folder_name='', belong_folder=''):
+    def share(self, username, filepath, shareduration, sharecode):
+```
+
 ## 5. 实现难点
+
+### 5.1 文件传输
+
+&emsp;&emsp;由于Web 和PyQt 的不同特性，iDrive 网盘的文件传输对不同客户端采用两种方式。
+&emsp;&emsp;Web 端中以ajax 异步传输的方式上传文件，并绑定Process 事件实时回调上传进度。以application/octet-stream的Content-Type下载文件，文件数据的形式是二进制流，且文件类型未知，这是浏览器中常见的文件下载方式，可以调起浏览器的下载功能。
+&emsp;&emsp;PyQt 端中将文件的二进制流写入POST 的数据包中，并附加文件的md5 值，上传和下载时分别在服务端和PyQt 端进行校验，确保文件内容无差错。
+
+### 5.2 Web 端的HTTP Request
+
+&emsp;&emsp;设计之初，Web 端的HTTP Request 计划以ajax 的XMLHttpRequest为主。经过调研之后，我们发现部分浏览器对ajax 的支持和兼容并不完备，偶尔会出现不执行ajax 而直接返回等一系列问题。
+&emsp;&emsp;为了尽量避免浏览器兼容性问题，我们以form 表单提交请求为主，仅在必要的部分采用ajax 方式，最大限度地避免iDrive 网盘在Web 端的兼容性问题。 

@@ -38,10 +38,6 @@ ALTER TABLE index_shareinfo CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_c
 server
 
 ```sh
-<<<<<<< HEAD
-python manage.py runserver 0.0.0.0:9999
-```
-=======
 python manage.py runserver 0.0.0.0:8000  
 ```
 
@@ -51,4 +47,3 @@ client
 cd ./qt
 python ./main.py
 ```
->>>>>>> dd8d74e1d50b1bdb56b7bf83d928c773c4c240d1

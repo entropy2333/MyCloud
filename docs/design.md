@@ -291,4 +291,16 @@ handler404 = views.page_not_found
 handler500 = views.page_error
 ```
 
-## 5. 实现难点
+#### 4.2.2 PyQt端客户端
+
+客户端继承session类，设置UA关键字，定义上传、下载等方法。
+
+```python
+class Client(requests.Session):
+
+    def __init__(self):
+        super().__init__()
+        self.SERVER_URL = 'http://127.0.0.1:9999'
+        self.UA = 'pyqt'
+        self.upload_process = {}
+```

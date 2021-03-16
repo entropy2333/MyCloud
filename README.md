@@ -1,5 +1,10 @@
 # Mycloud
 
+## Preview
+
+![](docs/img/主界面.png)
+![](docs/img/qt主界面.png)
+
 ## Requirements
 
 - Python 3.7,
